@@ -1,7 +1,7 @@
 ReClass.NET Unreal Plugin
 =================================
 
-A ReClass.NET plugin which displays type infos of Unreal classes
+A ReClass.NET plugin which displays type infos of Unreal classes.
 
 ![alt tag](https://abload.de/img/urealpluginmzj75.png)
 
@@ -13,6 +13,6 @@ SUPPORTED GAMES
 
 INSTALLATION
 -----
-- Clone from this Repository and Compile it yourself.
-- Copy UnrealPlugin.dll in the appropriate Plugin folder (ReClass.NET/x86/Plugins or ReClass.NET/x64/Plugins).
+- Clone from this repository and compile it yourself.
+- Copy UnrealPlugin.dll in the appropriate plugin folder (ReClass.NET/x86/Plugins or ReClass.NET/x64/Plugins).
 - Start ReClass.NET and check the plugins form.

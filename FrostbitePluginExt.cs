@@ -18,7 +18,7 @@ namespace UnrealPlugin
 
         public override bool Initialize(IPluginHost host)
         {
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
 
             if (this.host != null)
             {

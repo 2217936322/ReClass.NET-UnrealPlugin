@@ -44,15 +44,13 @@ namespace UnrealPlugin
         {
             //sender.UpdateProcessInformations();
 
-
-            //todo: cache names array
+            //TODO: Detect process name and initialize gNames offsets
+            //TODO: eventually cache names array
         }
 
         public override void Terminate()
         {
-            //host.DeregisterNodeInfoReader(reader);
-            
-            //TODO: Detect process name and initialize gNames offsets
+            host.DeregisterNodeInfoReader(reader);
         }
     }
 

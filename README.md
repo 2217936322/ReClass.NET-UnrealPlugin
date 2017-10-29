@@ -1,4 +1,4 @@
-ReClass.NET Frostbite Plugin
+ReClass.NET Unreal Plugin
 =================================
 
 A ReClass.NET plugin which displays type infos of Unreal classes

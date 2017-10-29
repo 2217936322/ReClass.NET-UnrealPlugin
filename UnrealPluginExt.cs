@@ -32,7 +32,7 @@ namespace UnrealPlugin
             // Register the InfoReader
             host.RegisterNodeInfoReader(this);
 
-            // Register ProcessAttached handler for caching all gnames
+            // Register ProcessAttached handler
             host.Process.ProcessAttached += OnProcessAttached;
 
             return true;

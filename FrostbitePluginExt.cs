@@ -46,7 +46,7 @@ namespace UnrealPlugin
             // Parse Bytepattern
             var bytePattern = BytePattern.Parse(pattern);
 
-            // Find Bytepattenr in our module bytes
+            // Find Bytepattern in our copy
             for (int i = 0; i < moduleBytes.Length; i++)
             {
                 if (bytePattern.Equals(moduleBytes, i))
@@ -62,15 +62,16 @@ namespace UnrealPlugin
         {
             process.UpdateProcessInformations();
 
+            var processName = System.IO.Path.GetFileName(process.UnderlayingProcess.Path).ToLower();
 
-            switch (process.UnderlayingProcess.Name.ToLower())
+            switch (processName)
             {
                 // TODO: Add more games
 
                 case "tslgame.exe": // Playerunknown's Battlegrounds
                     {
                         var pattern = "48 89 1D ?? ?? ?? ?? 48 8B 5C 24 ?? 48 83 C4 28 C3 48 8B 5C 24 ?? 48 89 05 ?? ?? ?? ?? 48 83 C4 28 C3";
-                        var address = FindPattern(process, process.GetModuleByName(process.UnderlayingProcess.Name), pattern);
+                        var address = FindPattern(process, process.GetModuleByName(processName), pattern);
 
                         if (!address.IsNull())
                         {
@@ -91,8 +92,6 @@ namespace UnrealPlugin
                         return;
                     }
             }
-
-            //TODO: eventually cache names array
         }
 
         public override void Terminate()

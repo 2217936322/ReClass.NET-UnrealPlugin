@@ -5,10 +5,10 @@ using System.Runtime.InteropServices;
 // Allgemeine Informationen über eine Assembly werden über die folgenden 
 // Attribute gesteuert. Ändern Sie diese Attributwerte, um die Informationen zu ändern,
 // die einer Assembly zugeordnet sind.
-[assembly: AssemblyTitle("Frostbite Helper")]
-[assembly: AssemblyDescription("A plugin which displays type infos of Frostbite classes and adds the WeakPtr node.")]
+[assembly: AssemblyTitle("Unreal Helper")]
+[assembly: AssemblyDescription("A plugin which displays type infos of Unreal classes.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("KN4CK3R")]
+[assembly: AssemblyCompany("Dr_Pepper")]
 [assembly: AssemblyProduct("ReClass.NET Plugin")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]

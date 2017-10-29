@@ -7,8 +7,8 @@
     <ProjectGuid>{CA79BA0B-0D80-476A-B793-FC7EF6DCEAD7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FrostbitePlugin</RootNamespace>
-    <AssemblyName>FrostbitePlugin</AssemblyName>
+    <RootNamespace>UnrealPlugin</RootNamespace>
+    <AssemblyName>UnrealPlugin</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -71,19 +71,16 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="WeakPtrCodeGenerator.cs" />
-    <Compile Include="WeakPtrNode.cs" />
-    <Compile Include="WeakPtrNodeConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
-    <None Include="Resources\logo_frostbite.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReClass.NET\ReClass.NET\ReClass.NET.csproj">

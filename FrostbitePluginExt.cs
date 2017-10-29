@@ -5,129 +5,126 @@ using ReClassNET.Memory;
 using ReClassNET.Nodes;
 using ReClassNET.Plugins;
 using ReClassNET.Util;
+using System.Runtime.InteropServices;
 
-namespace FrostbitePlugin
+namespace UnrealPlugin
 {
-	public class FrostbitePluginExt : Plugin
-	{
-		private IPluginHost host;
+    public class UnrealPluginExt : Plugin
+    {
+        private IPluginHost host;
 
-		internal static Settings Settings;
+        internal static Settings Settings;
 
-		private INodeInfoReader reader;
+        private INodeInfoReader reader;
 
-		private WeakPtrNodeConverter converter;
-		private WeakPtrCodeGenerator generator;
+        public override bool Initialize(IPluginHost host)
+        {
+            System.Diagnostics.Debugger.Launch();
 
-		public override Image Icon => Properties.Resources.logo_frostbite;
+            if (this.host != null)
+            {
+                Terminate();
+            }
 
-		public override bool Initialize(IPluginHost host)
-		{
-			//System.Diagnostics.Debugger.Launch();
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
 
-			if (this.host != null)
-			{
-				Terminate();
-			}
+            Settings = host.Settings;
 
-			this.host = host ?? throw new ArgumentNullException(nameof(host));
+            // Register the InfoReader
+            reader = new FrostBiteNodeInfoReader();
+            host.RegisterNodeInfoReader(reader);
 
-			Settings = host.Settings;
+            // Register ProcessAttached handler for caching all gnames
+            host.Process.ProcessAttached += OnProcessAttached;
 
-			// Register the InfoReader
-			reader = new FrostBiteNodeInfoReader();
-			host.RegisterNodeInfoReader(reader);
+            return true;
+        }
 
-			// Register the WeakPtr node
-			converter = new WeakPtrNodeConverter();
-			generator = new WeakPtrCodeGenerator();
-			host.RegisterNodeType(typeof(WeakPtrNode), "Frostbite WeakPtr", Icon, converter, generator);
-
-			return true;
-		}
-
-		public override void Terminate()
-		{
-			host.DeregisterNodeType(typeof(WeakPtrNode), converter, generator);
-
-			host.DeregisterNodeInfoReader(reader);
-
-			host = null;
-		}
-	}
+        private void OnProcessAttached(RemoteProcess sender)
+        {
+            //sender.UpdateProcessInformations();
 
 
-	/// <summary>A custom node info reader which outputs Frostbite type infos.</summary>
-	public class FrostBiteNodeInfoReader : INodeInfoReader
-	{
-		public string ReadNodeInfo(BaseNode node, IntPtr value, MemoryBuffer memory)
-		{
-			// 1. try the direct value
-			var info = ReadPtrInfo(value, memory);
-			if (!string.IsNullOrEmpty(info))
-			{
-				return info;
-			}
+            //todo: cache names array
+        }
 
-			// 2. try indirect pointer
-			var indirectPtr = memory.Process.ReadRemoteObject<IntPtr>(value);
-			if (indirectPtr.MayBeValid())
-			{
-				info = ReadPtrInfo(indirectPtr, memory);
-				if (!string.IsNullOrEmpty(info))
-				{
-					return $"Ptr -> {info}";
-				}
+        public override void Terminate()
+        {
+            //host.DeregisterNodeInfoReader(reader);
+            
+            //TODO: Detect process name and initialize gNames offsets
+        }
+    }
 
-				// 3. try weak pointer
-				var weakTempPtr = indirectPtr - IntPtr.Size;
-				if (weakTempPtr.MayBeValid())
-				{
-					var weakPtr = memory.Process.ReadRemoteObject<IntPtr>(weakTempPtr);
-					if (weakPtr.MayBeValid())
-					{
-						info = ReadPtrInfo(weakPtr, memory);
-						if (!string.IsNullOrEmpty(info))
-						{
-							return $"WeakPtr -> {info}";
-						}
-					}
-				}
-			}
 
-			return null;
-		}
-
-		private string ReadPtrInfo(IntPtr value, MemoryBuffer memory)
-		{
-			var getTypeFnPtr = memory.Process.ReadRemoteObject<IntPtr>(value);
-			if (getTypeFnPtr.MayBeValid())
-			{
+    /// <summary>A custom node info reader which outputs Frostbite type infos.</summary>
+    public class FrostBiteNodeInfoReader : INodeInfoReader
+    {
+        public string ReadNodeInfo(BaseNode node, IntPtr value, MemoryBuffer memory)
+        {
 #if RECLASSNET64
-				var offset = memory.Process.ReadRemoteObject<int>(getTypeFnPtr + 3);
-				var typeInfoPtr = getTypeFnPtr + offset + 7;
-#else
-				var typeInfoPtr = memory.Process.ReadRemoteObject<IntPtr>(getTypeFnPtr + 1);
-#endif
-				if (typeInfoPtr.MayBeValid())
-				{
-					var typeInfoDataPtr = memory.Process.ReadRemoteObject<IntPtr>(typeInfoPtr);
-					if (typeInfoDataPtr.MayBeValid())
-					{
-						var namePtr = memory.Process.ReadRemoteObject<IntPtr>(typeInfoDataPtr);
-						if (namePtr.MayBeValid())
-						{
-							var info = memory.Process.ReadRemoteUTF8StringUntilFirstNullCharacter(namePtr, 64);
-							if (info.Length > 0 && info[0].IsPrintable())
-							{
-								return info;
-							}
-						}
-					}
-				}
-			}
+            int index = memory.Process.ReadRemoteObject<int>(value.Add(new IntPtr(0x18)));
 
-			return null;
-		}
-	}
+            return ReadNameIndex(index, memory);
+#else
+            // TODO: add x86 support
+            return null;
+#endif
+        }
+
+
+
+        private string ReadNameIndex(int nameIndex, MemoryBuffer memory)
+        {
+            if (nameIndex < 1)
+            {
+                return null;
+            }
+
+            // TODO: Remove hardcoded offset & and use gNames offset initialized in OnProcessAttached
+            var processModule = memory.Process.GetModuleByName(memory.Process.UnderlayingProcess.Name);
+            var gNames = memory.Process.ReadRemoteObject<IntPtr>(processModule.Start.Add(new IntPtr(0x36E8790)));
+
+            if (gNames.MayBeValid())
+            {
+                int numElements = memory.Process.ReadRemoteObject<int>(gNames.Add(new IntPtr(0x400)));
+                int numChunks = memory.Process.ReadRemoteObject<int>(gNames.Add(new IntPtr(0x404)));
+
+                int indexChunk = nameIndex / 16384;
+                int indexName = nameIndex % 16384;
+
+                if (nameIndex < numElements &&  indexChunk < numChunks)
+                {
+                    var chunkPtr = memory.Process.ReadRemoteObject<IntPtr>(gNames.Add(new IntPtr(indexChunk * 0x8)));
+
+                    if (chunkPtr.MayBeValid())
+                    {
+                        var namePtr = memory.Process.ReadRemoteObject<IntPtr>(chunkPtr.Add(new IntPtr(indexName * 0x8)));
+
+                        int nameEntryIndex = memory.Process.ReadRemoteObject<int>(namePtr);
+
+                        if ((nameEntryIndex >> 1) == nameIndex)
+                        {
+                            bool wideChar = (nameEntryIndex & 1) != 0;
+
+                            if (wideChar)
+                            {
+                                var name = memory.Process.ReadRemoteString(System.Text.Encoding.Unicode, namePtr.Add(new IntPtr(0x10)), 1024);
+
+                                return name;
+                            }
+                            else
+                            {
+                                var name = memory.Process.ReadRemoteString(System.Text.Encoding.ASCII, namePtr.Add(new IntPtr(0x10)), 1024);
+
+                                return name;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+    }
 }

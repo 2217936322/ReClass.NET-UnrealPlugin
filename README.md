@@ -13,6 +13,6 @@ SUPPORTED GAMES
 
 INSTALLATION
 -----
-- Clone and Compile from this Repository
-- Copy UnrealPlugin.dll in the appropriate Plugin folder (ReClass.NET/x86/Plugins or ReClass.NET/x64/Plugins)
+- Clone from this Repository and Compile it yourself.
+- Copy UnrealPlugin.dll in the appropriate Plugin folder (ReClass.NET/x86/Plugins or ReClass.NET/x64/Plugins).
 - Start ReClass.NET and check the plugins form.

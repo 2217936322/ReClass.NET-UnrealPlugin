@@ -5,17 +5,16 @@ using ReClassNET.Memory;
 using ReClassNET.Nodes;
 using ReClassNET.Plugins;
 using ReClassNET.Util;
-using System.Runtime.InteropServices;
+using ReClassNET.MemoryScanner;
 
 namespace UnrealPlugin
 {
-    public class UnrealPluginExt : Plugin
+    public class UnrealPluginExt : Plugin, INodeInfoReader
     {
         private IPluginHost host;
-
         internal static Settings Settings;
 
-        private INodeInfoReader reader;
+        private IntPtr gNames;
 
         public override bool Initialize(IPluginHost host)
         {
@@ -31,8 +30,7 @@ namespace UnrealPlugin
             Settings = host.Settings;
 
             // Register the InfoReader
-            reader = new FrostBiteNodeInfoReader();
-            host.RegisterNodeInfoReader(reader);
+            host.RegisterNodeInfoReader(this);
 
             // Register ProcessAttached handler for caching all gnames
             host.Process.ProcessAttached += OnProcessAttached;
@@ -40,37 +38,82 @@ namespace UnrealPlugin
             return true;
         }
 
-        private void OnProcessAttached(RemoteProcess sender)
+        private IntPtr FindPattern(RemoteProcess process, Module module, string pattern)
         {
-            //sender.UpdateProcessInformations();
+            // Read Module Bytes
+            var moduleBytes = process.ReadRemoteMemory(module.Start, module.Size.ToInt32());
 
-            //TODO: Detect process name and initialize gNames offsets
+            // Parse Bytepattern
+            var bytePattern = BytePattern.Parse(pattern);
+
+            // Find Bytepattenr in our module bytes
+            for (int i = 0; i < moduleBytes.Length; i++)
+            {
+                if (bytePattern.Equals(moduleBytes, i))
+                {
+                    return module.Start.Add(new IntPtr(i));
+                }
+            }
+
+            return new IntPtr(0);
+        }
+
+        private void OnProcessAttached(RemoteProcess process)
+        {
+            process.UpdateProcessInformations();
+
+
+            switch (process.UnderlayingProcess.Name.ToLower())
+            {
+                // TODO: Add more games
+
+                case "tslgame.exe": // Playerunknown's Battlegrounds
+                    {
+                        var pattern = "48 89 1D ?? ?? ?? ?? 48 8B 5C 24 ?? 48 83 C4 28 C3 48 8B 5C 24 ?? 48 89 05 ?? ?? ?? ?? 48 83 C4 28 C3";
+                        var address = FindPattern(process, process.GetModuleByName(process.UnderlayingProcess.Name), pattern);
+
+                        if (!address.IsNull())
+                        {
+                            var offset = process.ReadRemoteObject<int>(address.Add(new IntPtr(0x3)));
+                            gNames = process.ReadRemoteObject<IntPtr>(address.Add(new IntPtr(offset + 7)));
+                        }
+                        else
+                        {
+                            gNames = new IntPtr(0);
+                        }
+
+                        break;
+                    }
+
+                default:
+                    {
+                        gNames = new IntPtr(0);
+                        return;
+                    }
+            }
+
             //TODO: eventually cache names array
         }
 
         public override void Terminate()
         {
-            host.DeregisterNodeInfoReader(reader);
+            host.DeregisterNodeInfoReader(this);
         }
-    }
 
-
-    /// <summary>A custom node info reader which outputs Frostbite type infos.</summary>
-    public class FrostBiteNodeInfoReader : INodeInfoReader
-    {
         public string ReadNodeInfo(BaseNode node, IntPtr value, MemoryBuffer memory)
         {
+            if (!gNames.IsNull())
+            {
 #if RECLASSNET64
-            int index = memory.Process.ReadRemoteObject<int>(value.Add(new IntPtr(0x18)));
-
-            return ReadNameIndex(index, memory);
+                int nameIndex = memory.Process.ReadRemoteObject<int>(value.Add(new IntPtr(0x18)));
 #else
-            // TODO: add x86 support
-            return null;
+                int nameIndex = memory.Process.ReadRemoteObject<int>(value.Add(new IntPtr(0x10)));
 #endif
+                return ReadNameIndex(nameIndex, memory);
+            }
+
+            return null;
         }
-
-
 
         private string ReadNameIndex(int nameIndex, MemoryBuffer memory)
         {
@@ -79,25 +122,23 @@ namespace UnrealPlugin
                 return null;
             }
 
-            // TODO: Remove hardcoded offset & and use gNames offset initialized in OnProcessAttached
-            var processModule = memory.Process.GetModuleByName(memory.Process.UnderlayingProcess.Name);
-            var gNames = memory.Process.ReadRemoteObject<IntPtr>(processModule.Start.Add(new IntPtr(0x36E8790)));
-
-            if (gNames.MayBeValid())
+            if (!gNames.IsNull())
             {
-                int numElements = memory.Process.ReadRemoteObject<int>(gNames.Add(new IntPtr(0x400)));
-                int numChunks = memory.Process.ReadRemoteObject<int>(gNames.Add(new IntPtr(0x404)));
+                int ptrsize = System.Runtime.InteropServices.Marshal.SizeOf<IntPtr>();
+
+                int numElements = memory.Process.ReadRemoteObject<int>(gNames.Add(new IntPtr(0x80 * ptrsize)));
+                int numChunks = memory.Process.ReadRemoteObject<int>(gNames.Add(new IntPtr(0x80 * ptrsize + 0x4)));
 
                 int indexChunk = nameIndex / 16384;
                 int indexName = nameIndex % 16384;
 
-                if (nameIndex < numElements &&  indexChunk < numChunks)
+                if (nameIndex < numElements && indexChunk < numChunks)
                 {
-                    var chunkPtr = memory.Process.ReadRemoteObject<IntPtr>(gNames.Add(new IntPtr(indexChunk * 0x8)));
+                    var chunkPtr = memory.Process.ReadRemoteObject<IntPtr>(gNames.Add(new IntPtr(indexChunk * ptrsize)));
 
                     if (chunkPtr.MayBeValid())
                     {
-                        var namePtr = memory.Process.ReadRemoteObject<IntPtr>(chunkPtr.Add(new IntPtr(indexName * 0x8)));
+                        var namePtr = memory.Process.ReadRemoteObject<IntPtr>(chunkPtr.Add(new IntPtr(indexName * ptrsize)));
 
                         int nameEntryIndex = memory.Process.ReadRemoteObject<int>(namePtr);
 
@@ -107,13 +148,13 @@ namespace UnrealPlugin
 
                             if (wideChar)
                             {
-                                var name = memory.Process.ReadRemoteString(System.Text.Encoding.Unicode, namePtr.Add(new IntPtr(0x10)), 1024);
+                                var name = memory.Process.ReadRemoteString(System.Text.Encoding.Unicode, namePtr.Add(new IntPtr(0x8 + ptrsize)), 1024);
 
                                 return name;
                             }
                             else
                             {
-                                var name = memory.Process.ReadRemoteString(System.Text.Encoding.ASCII, namePtr.Add(new IntPtr(0x10)), 1024);
+                                var name = memory.Process.ReadRemoteString(System.Text.Encoding.ASCII, namePtr.Add(new IntPtr(0x8 + ptrsize)), 1024);
 
                                 return name;
                             }

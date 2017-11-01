@@ -64,8 +64,9 @@ namespace UnrealPlugin
 		{
 			process.UpdateProcessInformations();
 
-			var processName = GetFileName(process.UnderlayingProcess.Path).ToLower();
+			gNames = IntPtr.Zero;
 
+			var processName = GetFileName(process.UnderlayingProcess.Path).ToLower();
 			switch (processName)
 			{
 				// TODO: Add more games
@@ -77,21 +78,11 @@ namespace UnrealPlugin
 
 						if (!address.IsNull())
 						{
-							var offset = process.ReadRemoteObject<int>(address.Add(new IntPtr(0x3)));
-							gNames = process.ReadRemoteObject<IntPtr>(address.Add(new IntPtr(offset + 7)));
-						}
-						else
-						{
-							gNames = new IntPtr(0);
+							var offset = process.ReadRemoteObject<int>(address + 0x3);
+							gNames = process.ReadRemoteObject<IntPtr>(address + offset + 7);
 						}
 
 						break;
-					}
-
-				default:
-					{
-						gNames = new IntPtr(0);
-						return;
 					}
 			}
 		}
@@ -123,32 +114,34 @@ namespace UnrealPlugin
 				return null;
 			}
 
-			if (!gNames.IsNull())
+			if (gNames.IsNull())
 			{
-				var numElements = memory.Process.ReadRemoteObject<int>(gNames + 0x80 * IntPtr.Size);
-				var numChunks = memory.Process.ReadRemoteObject<int>(gNames + 0x80 * IntPtr.Size + 0x4);
+				return null;
+			}
 
-				var indexChunk = nameIndex / 16384;
-				var indexName = nameIndex % 16384;
+			var numElements = memory.Process.ReadRemoteObject<int>(gNames + 0x80 * IntPtr.Size);
+			var numChunks = memory.Process.ReadRemoteObject<int>(gNames + 0x80 * IntPtr.Size + 0x4);
 
-				if (nameIndex < numElements && indexChunk < numChunks)
+			var indexChunk = nameIndex / 16384;
+			var indexName = nameIndex % 16384;
+
+			if (nameIndex < numElements && indexChunk < numChunks)
+			{
+				var chunkPtr = memory.Process.ReadRemoteObject<IntPtr>(gNames + indexChunk * IntPtr.Size);
+
+				if (chunkPtr.MayBeValid())
 				{
-					var chunkPtr = memory.Process.ReadRemoteObject<IntPtr>(gNames + indexChunk * IntPtr.Size);
+					var namePtr = memory.Process.ReadRemoteObject<IntPtr>(chunkPtr + indexName * IntPtr.Size);
 
-					if (chunkPtr.MayBeValid())
+					var nameEntryIndex = memory.Process.ReadRemoteObject<int>(namePtr);
+
+					if (nameEntryIndex >> 1 == nameIndex)
 					{
-						var namePtr = memory.Process.ReadRemoteObject<IntPtr>(chunkPtr + indexName * IntPtr.Size);
+						var wideChar = (nameEntryIndex & 1) != 0;
 
-						var nameEntryIndex = memory.Process.ReadRemoteObject<int>(namePtr);
+						var name = memory.Process.ReadRemoteString(wideChar ? Encoding.Unicode : Encoding.ASCII, namePtr + 0x8 + IntPtr.Size, 1024);
 
-						if (nameEntryIndex >> 1 == nameIndex)
-						{
-							var wideChar = (nameEntryIndex & 1) != 0;
-
-							var name = memory.Process.ReadRemoteString(wideChar ? Encoding.Unicode : Encoding.ASCII, namePtr + 0x8 + IntPtr.Size, 1024);
-
-							return name;
-						}
+						return name;
 					}
 				}
 			}

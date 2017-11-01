@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // Attribute gesteuert. Ändern Sie diese Attributwerte, um die Informationen zu ändern,
 // die einer Assembly zugeordnet sind.
 [assembly: AssemblyTitle("Unreal Helper")]
-[assembly: AssemblyDescription("A plugin which displays type infos of Unreal classes.")]
+[assembly: AssemblyDescription("A plugin which displays type infos of Unreal Engine classes.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Dr_Pepper")]
 [assembly: AssemblyProduct("ReClass.NET Plugin")]

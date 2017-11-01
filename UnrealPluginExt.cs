@@ -78,8 +78,8 @@ namespace UnrealPlugin
 
 						if (!address.IsNull())
 						{
-							var offset = process.ReadRemoteObject<int>(address + 0x3);
-							gNames = process.ReadRemoteObject<IntPtr>(address + offset + 7);
+							var offset = process.ReadRemoteInt32(address + 0x3);
+							gNames = process.ReadRemoteIntPtr(address + offset + 7);
 						}
 
 						break;
@@ -94,17 +94,17 @@ namespace UnrealPlugin
 
 		public string ReadNodeInfo(BaseNode node, IntPtr value, MemoryBuffer memory)
 		{
-			if (!gNames.IsNull())
+			if (gNames.IsNull())
 			{
-#if RECLASSNET64
-				var nameIndex = memory.Process.ReadRemoteObject<int>(value + 0x18);
-#else
-				var nameIndex = memory.Process.ReadRemoteObject<int>(value + 0x10);
-#endif
-				return ReadNameIndex(nameIndex, memory);
+				return null;
 			}
 
-			return null;
+#if RECLASSNET64
+			var nameIndex = memory.Process.ReadRemoteInt32(value + 0x18);
+#else
+			var nameIndex = memory.Process.ReadRemoteInt32(value + 0x10);
+#endif
+			return ReadNameIndex(nameIndex, memory);
 		}
 
 		private string ReadNameIndex(int nameIndex, MemoryBuffer memory)
@@ -119,21 +119,21 @@ namespace UnrealPlugin
 				return null;
 			}
 
-			var numElements = memory.Process.ReadRemoteObject<int>(gNames + 0x80 * IntPtr.Size);
-			var numChunks = memory.Process.ReadRemoteObject<int>(gNames + 0x80 * IntPtr.Size + 0x4);
+			var numElements = memory.Process.ReadRemoteInt32(gNames + 0x80 * IntPtr.Size);
+			var numChunks = memory.Process.ReadRemoteInt32(gNames + 0x80 * IntPtr.Size + 0x4);
 
 			var indexChunk = nameIndex / 16384;
 			var indexName = nameIndex % 16384;
 
 			if (nameIndex < numElements && indexChunk < numChunks)
 			{
-				var chunkPtr = memory.Process.ReadRemoteObject<IntPtr>(gNames + indexChunk * IntPtr.Size);
+				var chunkPtr = memory.Process.ReadRemoteIntPtr(gNames + indexChunk * IntPtr.Size);
 
 				if (chunkPtr.MayBeValid())
 				{
-					var namePtr = memory.Process.ReadRemoteObject<IntPtr>(chunkPtr + indexName * IntPtr.Size);
+					var namePtr = memory.Process.ReadRemoteIntPtr(chunkPtr + indexName * IntPtr.Size);
 
-					var nameEntryIndex = memory.Process.ReadRemoteObject<int>(namePtr);
+					var nameEntryIndex = memory.Process.ReadRemoteInt32(namePtr);
 
 					if (nameEntryIndex >> 1 == nameIndex)
 					{

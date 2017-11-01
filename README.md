@@ -1,7 +1,7 @@
 ReClass.NET Unreal Plugin
 =================================
 
-A ReClass.NET plugin which displays type infos of Unreal classes.
+A ReClass.NET plugin which displays type infos of Unreal Engine classes.
 
 ![alt tag](https://abload.de/img/urealpluginmzj75.png)
 

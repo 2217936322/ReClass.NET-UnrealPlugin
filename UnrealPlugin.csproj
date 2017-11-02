@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\Debug\x86\</OutputPath>
     <DefineConstants>TRACE;DEBUG;RECLASSNET32</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -64,6 +64,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="INameResolver.cs" />
+    <Compile Include="UnrealEngine1NameResolver.cs" />
+    <Compile Include="UnrealEngine2NameResolver.cs" />
+    <Compile Include="UnrealEngine3NameResolver.cs" />
+    <Compile Include="UnrealEngine4NameResolver.cs" />
     <Compile Include="UnrealPluginExt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

@@ -3,8 +3,9 @@ using System.Diagnostics.Contracts;
 using System.Runtime.InteropServices;
 using ReClassNET.Memory;
 using ReClassNET.Util;
+using UnrealPlugin.Config;
 
-namespace UnrealPlugin
+namespace UnrealPlugin.NameResolver
 {
 	internal abstract class BaseTArrayNameResolver : BaseNameResolver
 	{

@@ -3,8 +3,9 @@ using System.Diagnostics.Contracts;
 using System.Text;
 using ReClassNET.Memory;
 using ReClassNET.Util;
+using UnrealPlugin.Config;
 
-namespace UnrealPlugin
+namespace UnrealPlugin.NameResolver
 {
 	internal class UnrealEngine4NameResolver : BaseNameResolver
 	{

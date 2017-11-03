@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using ReClassNET.Memory;
 
-namespace UnrealPlugin
+namespace UnrealPlugin.NameResolver
 {
 	[ContractClass(typeof(NameResolverContract))]
 	internal interface INameResolver

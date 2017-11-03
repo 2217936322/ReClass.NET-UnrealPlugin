@@ -2,8 +2,9 @@
 using System.Diagnostics.Contracts;
 using ReClassNET.Memory;
 using ReClassNET.Util;
+using UnrealPlugin.Config;
 
-namespace UnrealPlugin
+namespace UnrealPlugin.NameResolver
 {
 	internal abstract class BaseNameResolver : INameResolver
 	{

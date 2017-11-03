@@ -1,4 +1,4 @@
-﻿namespace UnrealPlugin
+﻿namespace UnrealPlugin.Config
 {
 	internal class UnrealEngine1Config : BaseConfig
 	{

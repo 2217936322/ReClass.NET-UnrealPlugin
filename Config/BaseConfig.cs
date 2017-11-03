@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UnrealPlugin
+namespace UnrealPlugin.Config
 {
 	internal class BaseConfig
 	{

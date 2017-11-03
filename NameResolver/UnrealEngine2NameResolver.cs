@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics.Contracts;
 using ReClassNET.Memory;
+using UnrealPlugin.Config;
 
-namespace UnrealPlugin
+namespace UnrealPlugin.NameResolver
 {
 	internal class UnrealEngine2NameResolver : UnrealEngine1NameResolver
 	{

@@ -2,8 +2,9 @@
 using System.Diagnostics.Contracts;
 using System.Text;
 using ReClassNET.Memory;
+using UnrealPlugin.Config;
 
-namespace UnrealPlugin
+namespace UnrealPlugin.NameResolver
 {
 	internal class UnrealEngine1NameResolver : BaseTArrayNameResolver
 	{

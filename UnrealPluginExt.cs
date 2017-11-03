@@ -6,7 +6,9 @@ using ReClassNET.MemoryScanner;
 using ReClassNET.Nodes;
 using ReClassNET.Plugins;
 using ReClassNET.Util;
-using static System.IO.Path;
+using UnrealPlugin.Config;
+using UnrealPlugin.NameResolver;
+using System.IO;
 
 namespace UnrealPlugin
 {
@@ -66,7 +68,7 @@ namespace UnrealPlugin
 
 			resolver = null;
 
-			var processName = GetFileName(process.UnderlayingProcess.Path).ToLower();
+			var processName = Path.GetFileName(process.UnderlayingProcess.Path).ToLower();
 			switch (processName)
 			{
 				// TODO: Add more games

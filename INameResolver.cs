@@ -7,16 +7,14 @@ namespace UnrealPlugin
 	[ContractClass(typeof(NameResolverContract))]
 	internal interface INameResolver
 	{
-		string ReadNameOfObject(IntPtr address, RemoteProcess process);
+		string ReadNameOfObject(IntPtr address);
 	}
 
 	[ContractClassFor(typeof(INameResolver))]
 	internal abstract class NameResolverContract : INameResolver
 	{
-		public string ReadNameOfObject(IntPtr address, RemoteProcess process)
+		public string ReadNameOfObject(IntPtr address)
 		{
-			Contract.Requires(process != null);
-
 			throw new NotImplementedException();
 		}
 	}

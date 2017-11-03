@@ -64,10 +64,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseConfig.cs" />
+    <Compile Include="BaseNameResolver.cs" />
+    <Compile Include="BaseTArrayNameResolver.cs" />
     <Compile Include="INameResolver.cs" />
+    <Compile Include="UnrealEngine1Config.cs" />
     <Compile Include="UnrealEngine1NameResolver.cs" />
+    <Compile Include="UnrealEngine2Config.cs" />
     <Compile Include="UnrealEngine2NameResolver.cs" />
+    <Compile Include="UnrealEngine3Config.cs" />
     <Compile Include="UnrealEngine3NameResolver.cs" />
+    <Compile Include="UnrealEngine4Config.cs" />
     <Compile Include="UnrealEngine4NameResolver.cs" />
     <Compile Include="UnrealPluginExt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

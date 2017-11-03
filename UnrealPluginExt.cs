@@ -15,11 +15,11 @@ namespace UnrealPlugin
 		private IPluginHost host;
 		internal static Settings Settings;
 
-		private IntPtr gNames;
+		private INameResolver resolver;
 
 		public override bool Initialize(IPluginHost host)
 		{
-			//System.Diagnostics.Debugger.Launch();
+			System.Diagnostics.Debugger.Launch();
 
 			if (this.host != null)
 			{
@@ -64,14 +64,14 @@ namespace UnrealPlugin
 		{
 			process.UpdateProcessInformations();
 
-			gNames = IntPtr.Zero;
+			resolver = null;
 
 			var processName = GetFileName(process.UnderlayingProcess.Path).ToLower();
 			switch (processName)
 			{
 				// TODO: Add more games
 
-				case "tslgame.exe": // Playerunknown's Battlegrounds
+				/*case "tslgame.exe": // Playerunknown's Battlegrounds
 					{
 						var pattern = "48 89 1D ?? ?? ?? ?? 48 8B 5C 24 ?? 48 83 C4 28 C3 48 8B 5C 24 ?? 48 89 05 ?? ?? ?? ?? 48 83 C4 28 C3";
 						var address = FindPattern(process, process.GetModuleByName(processName), pattern);
@@ -83,7 +83,25 @@ namespace UnrealPlugin
 						}
 
 						break;
+					}*/
+				case "udk.exe":
+					var config = new UnrealEngine3Config
+					{
+						FNameEntryIndexOffset = 0x8,
+						FNameEntryNameDataOffset = 0x10,
+						UObjectNameOffset = 0x2C
+					};
+
+					var pattern = "8B 0D ?? ?? ?? ?? 83 3C 81 00 74";
+					var address = FindPattern(process, process.GetModuleByName(processName), pattern);
+
+					if (!address.IsNull())
+					{
+						config.GlobalArrayPtr = process.ReadRemoteIntPtr(address + 2);
+
+						resolver = new UnrealEngine3NameResolver(process, config);
 					}
+					break;
 			}
 		}
 
@@ -94,59 +112,7 @@ namespace UnrealPlugin
 
 		public string ReadNodeInfo(BaseNode node, IntPtr value, MemoryBuffer memory)
 		{
-			if (gNames.IsNull())
-			{
-				return null;
-			}
-
-#if RECLASSNET64
-			var nameIndex = memory.Process.ReadRemoteInt32(value + 0x18);
-#else
-			var nameIndex = memory.Process.ReadRemoteInt32(value + 0x10);
-#endif
-			return ReadNameIndex(nameIndex, memory);
-		}
-
-		private string ReadNameIndex(int nameIndex, MemoryBuffer memory)
-		{
-			if (nameIndex < 1)
-			{
-				return null;
-			}
-
-			if (gNames.IsNull())
-			{
-				return null;
-			}
-
-			var numElements = memory.Process.ReadRemoteInt32(gNames + 0x80 * IntPtr.Size);
-			var numChunks = memory.Process.ReadRemoteInt32(gNames + 0x80 * IntPtr.Size + 0x4);
-
-			var indexChunk = nameIndex / 16384;
-			var indexName = nameIndex % 16384;
-
-			if (nameIndex < numElements && indexChunk < numChunks)
-			{
-				var chunkPtr = memory.Process.ReadRemoteIntPtr(gNames + indexChunk * IntPtr.Size);
-
-				if (chunkPtr.MayBeValid())
-				{
-					var namePtr = memory.Process.ReadRemoteIntPtr(chunkPtr + indexName * IntPtr.Size);
-
-					var nameEntryIndex = memory.Process.ReadRemoteInt32(namePtr);
-
-					if (nameEntryIndex >> 1 == nameIndex)
-					{
-						var wideChar = (nameEntryIndex & 1) != 0;
-
-						var name = memory.Process.ReadRemoteString(wideChar ? Encoding.Unicode : Encoding.ASCII, namePtr + 0x8 + IntPtr.Size, 1024);
-
-						return name;
-					}
-				}
-			}
-
-			return null;
+			return resolver?.ReadNameOfObject(value);
 		}
 	}
 }

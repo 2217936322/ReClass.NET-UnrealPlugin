@@ -1,68 +1,26 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using System.Runtime.InteropServices;
 using System.Text;
 using ReClassNET.Memory;
-using ReClassNET.Util;
 
 namespace UnrealPlugin
 {
-	internal class UnrealEngine1NameResolver : INameResolver
+	internal class UnrealEngine1NameResolver : BaseTArrayNameResolver
 	{
-		[StructLayout(LayoutKind.Sequential)]
-		private struct TArray
-		{
-			public IntPtr Data;
-			public int NumElements;
-			public int MaxElements;
-		}
-
-		public int UObjectNameOffset { get; set; }
-
-		public bool FNameEntryIsWide { get; set; } = true;
-		public int FNameEntryNameDataOffset { get; set; } = 4 + 4 + IntPtr.Size;
-
-		public string ReadNameOfObject(IntPtr address, RemoteProcess process)
-		{
-			var nameIndex = ReadNameIndexOfObject(address, process);
-			if (nameIndex < 1)
-			{
-				return null;
-			}
-
-			return ReadNameFromNameArray(nameIndex, process);
-		}
-
-		private int ReadNameIndexOfObject(IntPtr address, RemoteProcess process)
+		public UnrealEngine1NameResolver(RemoteProcess process, UnrealEngine1Config config)
+			: base(process, config)
 		{
 			Contract.Requires(process != null);
-
-			return process.ReadRemoteInt32(address + UObjectNameOffset);
+			Contract.Requires(config != null);
 		}
 
-		private string ReadNameFromNameArray(int index, RemoteProcess process)
+		protected override string ReadNameFromNameEntry(IntPtr nameEntryPtr, int index)
 		{
-			Contract.Requires(index > 0);
-			Contract.Requires(process != null);
+			var ue1Config = (UnrealEngine1Config)config;
 
-			IntPtr gNames = IntPtr.Zero;
+			var name = process.ReadRemoteString(ue1Config.FNameEntryIsWide ? Encoding.Unicode : Encoding.ASCII, nameEntryPtr + ue1Config.FNameEntryNameDataOffset, 64);
 
-			var namesArray = process.ReadRemoteObject<TArray>(gNames);
-			if (index < namesArray.NumElements)
-			{
-				if (namesArray.Data.MayBeValid())
-				{
-					var nameEntryPtr = process.ReadRemoteIntPtr(namesArray.Data + index * IntPtr.Size);
-					if (nameEntryPtr.MayBeValid())
-					{
-						var name = process.ReadRemoteString(FNameEntryIsWide ? Encoding.Unicode : Encoding.ASCII, nameEntryPtr + FNameEntryNameDataOffset, 64);
-
-						return name;
-					}
-				}
-			}
-
-			return null;
+			return name;
 		}
 	}
 }

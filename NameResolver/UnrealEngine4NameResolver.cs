@@ -28,7 +28,7 @@ namespace UnrealPlugin.NameResolver
 			Contract.Requires(index > 0);
 
 			/*
-			class TStaticIndirectArrayThreadSafeRead
+			class TNameEntryArray
 			{
 				enum
 				{
@@ -40,11 +40,13 @@ namespace UnrealPlugin.NameResolver
 			}
 			*/
 
-			var memory = new MemoryBuffer(TNameEntryArray_ChunkTableSize * IntPtr.Size + sizeof(int) * 2);
+			var TNameEntryArray_ChunkTablesSize = TNameEntryArray_ChunkTableSize * IntPtr.Size;
+
+			var memory = new MemoryBuffer(TNameEntryArray_ChunkTablesSize + sizeof(int) * 2);
 			memory.Update(config.GlobalArrayPtr, false);
 
-			var numElements = memory.ReadInt32(TNameEntryArray_ChunkTableSize * IntPtr.Size);
-			var numChunks = memory.ReadInt32(TNameEntryArray_ChunkTableSize * IntPtr.Size + sizeof(int));
+			var numElements = memory.ReadInt32(TNameEntryArray_ChunkTablesSize);
+			var numChunks = memory.ReadInt32(TNameEntryArray_ChunkTablesSize + sizeof(int));
 
 			var indexChunk = index / TNameEntryArray_ElementsPerChunk;
 			var indexName = index % TNameEntryArray_ElementsPerChunk;
@@ -65,7 +67,7 @@ namespace UnrealPlugin.NameResolver
 
 		protected override string ReadNameFromNameEntry(IntPtr nameEntryPtr, int index)
 		{
-			var nameEntryIndex = process.ReadRemoteInt32(nameEntryPtr + ((UnrealEngine4Config)config).FNameEntryIndexOffset);
+			var nameEntryIndex = process.ReadRemoteInt32(nameEntryPtr + config.FNameEntryIndexOffset);
 			if (nameEntryIndex >> NameIndexShift == index)
 			{
 				var isWide = (nameEntryIndex & NameWideMask) != 0;

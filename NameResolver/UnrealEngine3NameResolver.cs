@@ -20,7 +20,7 @@ namespace UnrealPlugin.NameResolver
 
 		protected override string ReadNameFromNameEntry(IntPtr nameEntryPtr, int index)
 		{
-			var nameEntryIndex = process.ReadRemoteInt32(nameEntryPtr + ((UnrealEngine3Config)config).FNameEntryIndexOffset);
+			var nameEntryIndex = process.ReadRemoteInt32(nameEntryPtr + config.FNameEntryIndexOffset);
 			if (nameEntryIndex >> NameIndexShift == index)
 			{
 				var isWide = (nameEntryIndex & NameWideMask) != 0;

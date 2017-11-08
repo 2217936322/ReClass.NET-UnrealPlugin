@@ -17,11 +17,15 @@ namespace UnrealPlugin.NameResolver
 
 		protected override string ReadNameFromNameEntry(IntPtr nameEntryPtr, int index)
 		{
-			var ue1Config = (UnrealEngine1Config)config;
+			var nameEntryIndex = process.ReadRemoteInt32(nameEntryPtr + config.FNameEntryIndexOffset);
+			if (nameEntryIndex == index)
+			{
+				var name = process.ReadRemoteString(((UnrealEngine1Config)config).FNameEntryIsWide ? Encoding.Unicode : Encoding.ASCII, nameEntryPtr + config.FNameEntryNameDataOffset, 64);
 
-			var name = process.ReadRemoteString(ue1Config.FNameEntryIsWide ? Encoding.Unicode : Encoding.ASCII, nameEntryPtr + ue1Config.FNameEntryNameDataOffset, 64);
+				return name;
+			}
 
-			return name;
+			return null;
 		}
 	}
 }

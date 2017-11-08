@@ -8,6 +8,7 @@ namespace UnrealPlugin.Config
 
 		public int UObjectNameOffset { get; set; }
 
+		public int FNameEntryIndexOffset { get; set; }
 		public int FNameEntryNameDataOffset { get; set; }
 	}
 }

@@ -12,6 +12,7 @@ using ReClassNET.Util;
 using UnrealPlugin.Config;
 using UnrealPlugin.NameResolver;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using ReClassNET.Forms;
 using ReClassNET.UI;
@@ -21,13 +22,84 @@ namespace UnrealPlugin
 {
 	public class UnrealPluginExt : Plugin, INodeInfoReader
 	{
-		private readonly Dictionary<string, UnrealApplicationSettings> applicationSettings = new Dictionary<string, UnrealApplicationSettings>();
-
 		private IPluginHost host;
 		
 		private INameResolver resolver;
 
 		public override Image Icon => Properties.Resources.icon;
+
+		public List<UnrealApplicationSettings> Applications { get; } = new List<UnrealApplicationSettings>()
+		{
+			new UnrealApplicationSettings
+			{
+				Name = "Playerunknown's Battlegrounds",
+				Version = UnrealEngineVersion.UE4,
+				Platform = Platform.x64,
+				ProcessName = "tslgame.exe",
+				PatternMethod = PatternMethod.InstructionAddressPlusOffset,
+				Pattern = "48 89 1D ?? ?? ?? ?? 48 8B 5C 24 ?? 48 83 C4 28 C3 48 8B 5C 24 ?? 48 89 05 ?? ?? ?? ?? 48 83 C4 28 C3",
+				PatternOffset = 3,
+				UObjectNameOffset = 4,
+				FNameEntryIndexOffset = 0,
+				FNameEntryNameDataOffset = 0xC
+			},
+			new UnrealApplicationSettings
+			{
+				Name = "Caffeine",
+				Version = UnrealEngineVersion.UE3,
+				Platform = Platform.x86,
+				ProcessName = "udk.exe",
+				PatternMethod = PatternMethod.Direct,
+				Pattern = "8B 0D ?? ?? ?? ?? 83 3C 81 00 74",
+				PatternOffset = 2,
+				UObjectNameOffset = 0x2C,
+				FNameEntryIndexOffset = 8,
+				FNameEntryNameDataOffset = 0x10
+			},
+			new UnrealApplicationSettings
+			{
+				Name = "XIII",
+				Version = UnrealEngineVersion.UE2,
+				Platform = Platform.x86,
+				ProcessName = "xiii.exe",
+				PatternMethod = PatternMethod.Direct,
+				Pattern = "A1 ?? ?? ?? ?? 8B 88",
+				PatternOffset = 1,
+				UObjectNameOffset = 0x20,
+				FNameEntryIndexOffset = 0,
+				FNameEntryNameDataOffset = 0xD
+			},
+			new UnrealApplicationSettings
+			{
+				Name = "Unreal Tournament 2004",
+				Version = UnrealEngineVersion.UE2,
+				Platform = Platform.x86,
+				ProcessName = "xiii.exe",
+				PatternMethod = PatternMethod.Direct,
+				PatternModule = "core.dll",
+				Pattern = "A1 ?? ?? ?? ?? 8B 88",
+				PatternOffset = 1,
+				UObjectNameOffset = 0x24,
+				FNameEntryIndexOffset = 0,
+				FNameEntryNameDataOffset = 0xC,
+				FNameEntryIsWide = true
+			},
+			new UnrealApplicationSettings
+			{
+				Name = "Deus Ex",
+				Version = UnrealEngineVersion.UE1,
+				Platform = Platform.x86,
+				ProcessName = "deusex.exe",
+				PatternMethod = PatternMethod.Direct,
+				PatternModule = "core.dll",
+				Pattern = "A1 ?? ?? ?? ?? 8B 88",
+				PatternOffset = 1,
+				UObjectNameOffset = 0x20,
+				FNameEntryIndexOffset = 0,
+				FNameEntryNameDataOffset = 0xC,
+				FNameEntryIsWide = true
+			}
+		};
 
 		public override bool Initialize(IPluginHost host)
 		{
@@ -115,9 +187,10 @@ namespace UnrealPlugin
 
 			var processName = Path.GetFileName(process.UnderlayingProcess.Path).ToLower();
 
-			if (applicationSettings.TryGetValue(processName, out var settings))
+			var settings = Applications.FirstOrDefault(s => s.ProcessName == processName);
+			if (settings != null)
 			{
-				var namesArrayPtr = FindPattern(process, process.GetModuleByName(settings.PatternModule), settings.GlobalNamesArrayPattern);
+				var namesArrayPtr = FindPattern(process, process.GetModuleByName(settings.PatternModule), settings.Pattern);
 
 				if (!namesArrayPtr.IsNull())
 				{
@@ -151,99 +224,6 @@ namespace UnrealPlugin
 							throw new ArgumentOutOfRangeException();
 					}
 				}
-			}
-
-			switch (processName)
-			{
-				// TODO: Add more games
-
-				/*case "tslgame.exe": // Playerunknown's Battlegrounds
-					{
-						var pattern = "48 89 1D ?? ?? ?? ?? 48 8B 5C 24 ?? 48 83 C4 28 C3 48 8B 5C 24 ?? 48 89 05 ?? ?? ?? ?? 48 83 C4 28 C3";
-						var address = FindPattern(process, process.GetModuleByName(processName), pattern);
-
-						if (!address.IsNull())
-						{
-							var offset = process.ReadRemoteInt32(address + 0x3);
-							gNames = process.ReadRemoteIntPtr(address + offset + 7);
-						}
-
-						break;
-					}*/
-				/*case "udk.exe":
-					var config = new UnrealEngine3Config
-					{
-						FNameEntryIndexOffset = 0x8,
-						FNameEntryNameDataOffset = 0x10,
-						UObjectNameOffset = 0x2C
-					};
-
-					var pattern = "8B 0D ?? ?? ?? ?? 83 3C 81 00 74";
-					var address = FindPattern(process, process.GetModuleByName(processName), pattern);
-
-					if (!address.IsNull())
-					{
-						config.GlobalArrayPtr = process.ReadRemoteIntPtr(address + 2);
-
-						resolver = new UnrealEngine3NameResolver(process, config);
-					}
-					break;*/
-				/*case "xiii.exe":
-					var config = new UnrealEngine2Config
-					{
-						FNameEntryIndexOffset = 0x00,
-						FNameEntryNameDataOffset = 0x0D,
-						UObjectNameOffset = 0x20
-					};
-
-					var pattern = "A1 ?? ?? ?? ?? 8B 88";
-					var address = FindPattern(process, process.GetModuleByName("core.dll"), pattern);
-
-					if (!address.IsNull())
-					{
-						config.GlobalArrayPtr = process.ReadRemoteIntPtr(address + 1);
-
-						resolver = new UnrealEngine2NameResolver(process, config);
-					}
-					break;*/
-				/*case "ut2004.exe":
-					var config = new UnrealEngine2Config
-					{
-						FNameEntryIndexOffset = 0x00,
-						FNameEntryNameDataOffset = 0x0C,
-						FNameEntryIsWide = true,
-						UObjectNameOffset = 0x24
-					};
-
-					var pattern = "A1 ?? ?? ?? ?? 8B 88";
-					var address = FindPattern(process, process.GetModuleByName("core.dll"), pattern);
-
-					if (!address.IsNull())
-					{
-						config.GlobalArrayPtr = process.ReadRemoteIntPtr(address + 1);
-
-						resolver = new UnrealEngine2NameResolver(process, config);
-					}
-					break;*/
-				case "deusex.exe":
-					var config = new UnrealEngine1Config
-					{
-						FNameEntryIndexOffset = 0x00,
-						FNameEntryNameDataOffset = 0x0C,
-						FNameEntryIsWide = true,
-						UObjectNameOffset = 0x20
-					};
-
-					var pattern = "A1 ?? ?? ?? ?? 8B 88";
-					var address = FindPattern(process, process.GetModuleByName("core.dll"), pattern);
-
-					if (!address.IsNull())
-					{
-						config.GlobalArrayPtr = process.ReadRemoteIntPtr(address + 1);
-
-						resolver = new UnrealEngine1NameResolver(process, config);
-					}
-					break;
 			}
 		}
 

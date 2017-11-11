@@ -2,7 +2,7 @@
 
 namespace UnrealPlugin
 {
-	internal enum UnrealEngineVersion
+	public enum UnrealEngineVersion
 	{
 		[Description("Unreal Engine 1")]
 		UE1,

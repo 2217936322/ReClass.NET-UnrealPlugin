@@ -37,6 +37,8 @@
 			this.nameEntryLabel = new System.Windows.Forms.Label();
 			this.objectLabel = new System.Windows.Forms.Label();
 			this.patternGroupBox = new System.Windows.Forms.GroupBox();
+			this.patternModuleTextBox = new System.Windows.Forms.TextBox();
+			this.moduleLabel = new System.Windows.Forms.Label();
 			this.patternOffsetNumericUpDown = new System.Windows.Forms.NumericUpDown();
 			this.label1 = new System.Windows.Forms.Label();
 			this.methodLabel = new System.Windows.Forms.Label();
@@ -51,8 +53,6 @@
 			this.applicationLabel = new System.Windows.Forms.Label();
 			this.addButton = new ReClassNET.UI.IconButton();
 			this.deleteButton = new ReClassNET.UI.IconButton();
-			this.moduleLabel = new System.Windows.Forms.Label();
-			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.applicationSettingsGroupBox.SuspendLayout();
 			this.groupBox3.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.nameEntryDataOffsetNumericUpDown)).BeginInit();
@@ -105,7 +105,7 @@
 			// nameEntryDataOffsetNumericUpDown
 			// 
 			this.nameEntryDataOffsetNumericUpDown.Hexadecimal = true;
-			this.nameEntryDataOffsetNumericUpDown.Location = new System.Drawing.Point(319, 78);
+			this.nameEntryDataOffsetNumericUpDown.Location = new System.Drawing.Point(319, 79);
 			this.nameEntryDataOffsetNumericUpDown.Maximum = new decimal(new int[] {
             999999,
             0,
@@ -119,7 +119,7 @@
 			// nameEntryIndexOffsetNumericUpDown
 			// 
 			this.nameEntryIndexOffsetNumericUpDown.Hexadecimal = true;
-			this.nameEntryIndexOffsetNumericUpDown.Location = new System.Drawing.Point(319, 52);
+			this.nameEntryIndexOffsetNumericUpDown.Location = new System.Drawing.Point(319, 53);
 			this.nameEntryIndexOffsetNumericUpDown.Maximum = new decimal(new int[] {
             999999,
             0,
@@ -133,7 +133,7 @@
 			// objectNameIndexOffsetNumericUpDown
 			// 
 			this.objectNameIndexOffsetNumericUpDown.Hexadecimal = true;
-			this.objectNameIndexOffsetNumericUpDown.Location = new System.Drawing.Point(93, 52);
+			this.objectNameIndexOffsetNumericUpDown.Location = new System.Drawing.Point(93, 53);
 			this.objectNameIndexOffsetNumericUpDown.Maximum = new decimal(new int[] {
             999999,
             0,
@@ -162,7 +162,7 @@
 			// 
 			// patternGroupBox
 			// 
-			this.patternGroupBox.Controls.Add(this.textBox1);
+			this.patternGroupBox.Controls.Add(this.patternModuleTextBox);
 			this.patternGroupBox.Controls.Add(this.moduleLabel);
 			this.patternGroupBox.Controls.Add(this.patternOffsetNumericUpDown);
 			this.patternGroupBox.Controls.Add(this.label1);
@@ -176,6 +176,23 @@
 			this.patternGroupBox.TabIndex = 4;
 			this.patternGroupBox.TabStop = false;
 			this.patternGroupBox.Text = "Global Names Pattern";
+			// 
+			// patternModuleTextBox
+			// 
+			this.patternModuleTextBox.Location = new System.Drawing.Point(56, 72);
+			this.patternModuleTextBox.Name = "patternModuleTextBox";
+			this.patternModuleTextBox.Size = new System.Drawing.Size(462, 20);
+			this.patternModuleTextBox.TabIndex = 7;
+			this.patternModuleTextBox.TextChanged += new System.EventHandler(this.OnInputChanged);
+			// 
+			// moduleLabel
+			// 
+			this.moduleLabel.AutoSize = true;
+			this.moduleLabel.Location = new System.Drawing.Point(6, 75);
+			this.moduleLabel.Name = "moduleLabel";
+			this.moduleLabel.Size = new System.Drawing.Size(45, 13);
+			this.moduleLabel.TabIndex = 6;
+			this.moduleLabel.Text = "Module:";
 			// 
 			// patternOffsetNumericUpDown
 			// 
@@ -307,6 +324,7 @@
 			this.addButton.Selected = false;
 			this.addButton.Size = new System.Drawing.Size(23, 22);
 			this.addButton.TabIndex = 7;
+			this.addButton.Click += new System.EventHandler(this.addButton_Click);
 			// 
 			// deleteButton
 			// 
@@ -317,22 +335,7 @@
 			this.deleteButton.Selected = false;
 			this.deleteButton.Size = new System.Drawing.Size(23, 22);
 			this.deleteButton.TabIndex = 8;
-			// 
-			// moduleLabel
-			// 
-			this.moduleLabel.AutoSize = true;
-			this.moduleLabel.Location = new System.Drawing.Point(6, 75);
-			this.moduleLabel.Name = "moduleLabel";
-			this.moduleLabel.Size = new System.Drawing.Size(45, 13);
-			this.moduleLabel.TabIndex = 6;
-			this.moduleLabel.Text = "Module:";
-			// 
-			// textBox1
-			// 
-			this.textBox1.Location = new System.Drawing.Point(56, 72);
-			this.textBox1.Name = "textBox1";
-			this.textBox1.Size = new System.Drawing.Size(462, 20);
-			this.textBox1.TabIndex = 7;
+			this.deleteButton.Click += new System.EventHandler(this.deleteButton_Click);
 			// 
 			// SettingsPanel
 			// 
@@ -385,7 +388,7 @@
 		private ReClassNET.UI.IconButton deleteButton;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.NumericUpDown patternOffsetNumericUpDown;
-		private System.Windows.Forms.TextBox textBox1;
+		private System.Windows.Forms.TextBox patternModuleTextBox;
 		private System.Windows.Forms.Label moduleLabel;
 	}
 }

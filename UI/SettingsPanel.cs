@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
 using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Drawing;
 using System.Windows.Forms;
 using ReClassNET.UI;
-using ReClassNET.Util;
+using UnrealPlugin.Forms;
 
 namespace UnrealPlugin.UI
 {
@@ -19,13 +14,26 @@ namespace UnrealPlugin.UI
 		internal class PlatformComboBox : EnumComboBox<Platform> { }
 		internal class PatternMethodComboBox : EnumComboBox<PatternMethod> { }
 
+		private readonly UnrealPluginExt plugin;
+
+		private bool disableEvents = false;
+
 		public SettingsPanel(UnrealPluginExt plugin)
 		{
+			Contract.Requires(plugin != null);
+
+			this.plugin = plugin;
+
 			InitializeComponent();
 
 			SetStyle(ControlStyles.SupportsTransparentBackColor, true);
 			BackColor = Color.Transparent;
 
+			BindSettings();
+		}
+
+		private void BindSettings()
+		{
 			applicationComboBox.DataSource = plugin.Applications;
 		}
 
@@ -44,7 +52,10 @@ namespace UnrealPlugin.UI
 
 		private void OnInputChanged(object sender, EventArgs e)
 		{
-			UpdateSettingsFromGui();
+			if (!disableEvents)
+			{
+				UpdateSettingsFromGui();
+			}
 		}
 
 		private void UpdateGuiFromSettings(UnrealApplicationSettings settings)
@@ -56,20 +67,29 @@ namespace UnrealPlugin.UI
 				return;
 			}
 
-			applicationSettingsGroupBox.Enabled = true;
+			try
+			{
+				disableEvents = true;
 
-			engineVersionComboBox.SelectedValue = settings.Version;
-			platformComboBox.SelectedValue = settings.Platform;
+				applicationSettingsGroupBox.Enabled = true;
 
-			patternMethodComboBox.SelectedValue = settings.PatternMethod;
+				engineVersionComboBox.SelectedValue = settings.Version;
+				platformComboBox.SelectedValue = settings.Platform;
 
-			patternTextBox.Text = settings.Pattern;
-			patternOffsetNumericUpDown.Value = settings.PatternOffset;
+				patternMethodComboBox.SelectedValue = settings.PatternMethod;
+				patternModuleTextBox.Text = settings.PatternModule;
+				patternTextBox.Text = settings.Pattern;
+				patternOffsetNumericUpDown.Value = settings.PatternOffset;
 
-			objectNameIndexOffsetNumericUpDown.Value = settings.UObjectNameOffset;
-			nameEntryIndexOffsetNumericUpDown.Value = settings.FNameEntryIndexOffset;
-			nameEntryDataOffsetNumericUpDown.Value = settings.FNameEntryNameDataOffset;
-			nameEntryIsWideCharCheckBox.Checked = settings.FNameEntryIsWide;
+				objectNameIndexOffsetNumericUpDown.Value = settings.UObjectNameOffset;
+				nameEntryIndexOffsetNumericUpDown.Value = settings.FNameEntryIndexOffset;
+				nameEntryDataOffsetNumericUpDown.Value = settings.FNameEntryNameDataOffset;
+				nameEntryIsWideCharCheckBox.Checked = settings.FNameEntryIsWide;
+			}
+			finally
+			{
+				disableEvents = false;
+			}
 		}
 
 		private void UpdateSettingsFromGui()
@@ -84,14 +104,46 @@ namespace UnrealPlugin.UI
 			settings.Platform = platformComboBox.SelectedValue;
 
 			settings.PatternMethod = patternMethodComboBox.SelectedValue;
-			//settings.PatternModule = ;
-			settings.Pattern = patternTextBox.Text;
+			settings.PatternModule = patternModuleTextBox.Text.Trim();
+			settings.Pattern = patternTextBox.Text.Trim();
 			settings.PatternOffset = (int)patternOffsetNumericUpDown.Value;
 
 			settings.UObjectNameOffset = (int)objectNameIndexOffsetNumericUpDown.Value;
 			settings.FNameEntryIndexOffset = (int)nameEntryIndexOffsetNumericUpDown.Value;
 			settings.FNameEntryNameDataOffset = (int)nameEntryDataOffsetNumericUpDown.Value;
 			settings.FNameEntryIsWide = nameEntryIsWideCharCheckBox.Checked;
+		}
+
+		private void addButton_Click(object sender, EventArgs e)
+		{
+			using (var caf = new ApplicationForm())
+			{
+				if (caf.ShowDialog() == DialogResult.OK)
+				{
+					var settings = new UnrealApplicationSettings
+					{
+						Name = caf.ApplicationName.Trim()
+					};
+					plugin.Applications.Add(settings);
+
+					BindSettings();
+
+					applicationComboBox.SelectedItem = settings;
+				}
+			}
+		}
+
+		private void deleteButton_Click(object sender, EventArgs e)
+		{
+			var settings = GetSelectedApplicationSettings();
+			if (settings == null)
+			{
+				return;
+			}
+
+			plugin.Applications.Remove(settings);
+
+			BindSettings();
 		}
 	}
 }

@@ -44,6 +44,7 @@ namespace UnrealPlugin
 		{
 			return new XElement(
 				RootElement,
+				new XElement(nameof(settings.Name), settings.Name),
 				new XElement(nameof(settings.Version), (int)settings.Version),
 				new XElement(nameof(settings.Platform), (int)settings.Platform),
 				new XElement(nameof(settings.ProcessName), settings.ProcessName),
@@ -64,6 +65,7 @@ namespace UnrealPlugin
 		{
 			var settings = new UnrealApplicationSettings();
 
+			XElementSerializer.TryRead(element, nameof(settings.Name), e => settings.Name = XElementSerializer.ToString(e));
 			XElementSerializer.TryRead(element, nameof(settings.Version), e => settings.Version = (UnrealEngineVersion)XElementSerializer.ToInt(e));
 			XElementSerializer.TryRead(element, nameof(settings.Platform), e => settings.Platform = (Platform)XElementSerializer.ToInt(e));
 			XElementSerializer.TryRead(element, nameof(settings.ProcessName), e => settings.ProcessName = XElementSerializer.ToString(e));

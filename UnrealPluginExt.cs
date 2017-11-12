@@ -186,52 +186,68 @@ namespace UnrealPlugin
 			var settings = Applications.FirstOrDefault(s => s.ProcessName == processName);
 			if (settings != null)
 			{
-				var namesArrayPtr = FindPattern(process, process.GetModuleByName(settings.PatternModule), settings.Pattern);
+				var moduleName = string.IsNullOrEmpty(settings.PatternModule) ? settings.ProcessName : settings.PatternModule;
+
+				var namesArrayPtr = FindPattern(process, process.GetModuleByName(moduleName), settings.Pattern);
 
 				if (!namesArrayPtr.IsNull())
 				{
-					switch (settings.Version)
+					switch (settings.PatternMethod)
 					{
-						case UnrealEngineVersion.UE1:
-							resolver = new UnrealEngine1NameResolver(process, new UnrealEngine1Config
-							{
-								GlobalArrayPtr = namesArrayPtr,
-								UObjectNameOffset = settings.UObjectNameOffset,
-								FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
-								FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset,
-								FNameEntryIsWide = settings.FNameEntryIsWide
-							});
+						case PatternMethod.Direct:
+							namesArrayPtr = process.ReadRemoteIntPtr(namesArrayPtr + settings.PatternOffset);
 							break;
-						case UnrealEngineVersion.UE2:
-							resolver = new UnrealEngine2NameResolver(process, new UnrealEngine2Config
-							{
-								GlobalArrayPtr = namesArrayPtr,
-								UObjectNameOffset = settings.UObjectNameOffset,
-								FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
-								FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset,
-								FNameEntryIsWide = settings.FNameEntryIsWide
-							});
+						case PatternMethod.Derefence:
+							var temp = process.ReadRemoteIntPtr(namesArrayPtr + settings.PatternOffset);
+							namesArrayPtr = process.ReadRemoteIntPtr(temp);
 							break;
-						case UnrealEngineVersion.UE3:
-							resolver = new UnrealEngine3NameResolver(process, new UnrealEngine3Config
-							{
-								GlobalArrayPtr = namesArrayPtr,
-								UObjectNameOffset = settings.UObjectNameOffset,
-								FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
-								FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset
-							});
-							break;
-						case UnrealEngineVersion.UE4:
-							resolver = new UnrealEngine4NameResolver(process, new UnrealEngine4Config
-							{
-								GlobalArrayPtr = namesArrayPtr,
-								UObjectNameOffset = settings.UObjectNameOffset,
-								FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
-								FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset
-							});
-							break;
-						default:
-							throw new ArgumentOutOfRangeException();
+					}
+
+					if (namesArrayPtr.MayBeValid())
+					{
+						switch (settings.Version)
+						{
+							case UnrealEngineVersion.UE1:
+								resolver = new UnrealEngine1NameResolver(process, new UnrealEngine1Config
+								{
+									GlobalArrayPtr = namesArrayPtr,
+									UObjectNameOffset = settings.UObjectNameOffset,
+									FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
+									FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset,
+									FNameEntryIsWide = settings.FNameEntryIsWide
+								});
+								break;
+							case UnrealEngineVersion.UE2:
+								resolver = new UnrealEngine2NameResolver(process, new UnrealEngine2Config
+								{
+									GlobalArrayPtr = namesArrayPtr,
+									UObjectNameOffset = settings.UObjectNameOffset,
+									FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
+									FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset,
+									FNameEntryIsWide = settings.FNameEntryIsWide
+								});
+								break;
+							case UnrealEngineVersion.UE3:
+								resolver = new UnrealEngine3NameResolver(process, new UnrealEngine3Config
+								{
+									GlobalArrayPtr = namesArrayPtr,
+									UObjectNameOffset = settings.UObjectNameOffset,
+									FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
+									FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset
+								});
+								break;
+							case UnrealEngineVersion.UE4:
+								resolver = new UnrealEngine4NameResolver(process, new UnrealEngine4Config
+								{
+									GlobalArrayPtr = namesArrayPtr,
+									UObjectNameOffset = settings.UObjectNameOffset,
+									FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
+									FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset
+								});
+								break;
+							default:
+								throw new ArgumentOutOfRangeException();
+						}
 					}
 				}
 			}

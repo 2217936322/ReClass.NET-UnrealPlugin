@@ -8,6 +8,7 @@ A ReClass.NET plugin which displays type infos of Unreal Engine classes.
 SUPPORTED GAMES
 ---
 - Playerunknown's Battlegrounds™
+- Fortnite
 - To get it work with other unreal games add a case with the processname of your game 
   and a signature for the GNames Array to the Code.
 

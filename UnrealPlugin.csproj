@@ -66,6 +66,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\BaseConfig.cs" />
+    <Compile Include="Forms\ApplicationForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ApplicationForm.Designer.cs">
+      <DependentUpon>ApplicationForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="NameResolver\BaseNameResolver.cs" />
     <Compile Include="NameResolver\BaseTArrayNameResolver.cs" />
     <Compile Include="NameResolver\INameResolver.cs" />
@@ -94,6 +100,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Forms\ApplicationForm.resx">
+      <DependentUpon>ApplicationForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -120,6 +129,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\B16x16_Button_Delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\B16x16_Icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\B32x32_Icon.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -2,31 +2,32 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Text;
-using ReClassNET;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using System.Xml.Linq;
+using ReClassNET.Forms;
 using ReClassNET.Memory;
 using ReClassNET.MemoryScanner;
 using ReClassNET.Nodes;
 using ReClassNET.Plugins;
+using ReClassNET.UI;
 using ReClassNET.Util;
 using UnrealPlugin.Config;
 using UnrealPlugin.NameResolver;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
-using ReClassNET.Forms;
-using ReClassNET.UI;
 using UnrealPlugin.UI;
 
 namespace UnrealPlugin
 {
 	public class UnrealPluginExt : Plugin, INodeInfoReader
 	{
+		private const string ConfigApplicationsKey = "UnrealPlugin.Applications";
+
 		private IPluginHost host;
 		
 		private INameResolver resolver;
 
-		public override Image Icon => Properties.Resources.icon;
+		public override Image Icon => Properties.Resources.B16x16_Icon;
 
 		public List<UnrealApplicationSettings> Applications { get; } = new List<UnrealApplicationSettings>()
 		{
@@ -103,7 +104,7 @@ namespace UnrealPlugin
 
 		public override bool Initialize(IPluginHost host)
 		{
-			//System.Diagnostics.Debugger.Launch();
+			System.Diagnostics.Debugger.Launch();
 
 			if (this.host != null)
 			{
@@ -111,6 +112,12 @@ namespace UnrealPlugin
 			}
 
 			this.host = host ?? throw new ArgumentNullException(nameof(host));
+
+			var applications = host.Settings.CustomData.GetXElement(ConfigApplicationsKey, null);
+			if (applications != null)
+			{
+				Applications.AddRange(applications.Elements().Select(UnrealApplicationSettings.FromXml));
+			}
 
 			// Register the InfoReader
 			host.RegisterNodeInfoReader(this);
@@ -128,6 +135,14 @@ namespace UnrealPlugin
 			GlobalWindowManager.WindowAdded -= WindowAddedHandler;
 
 			host.DeregisterNodeInfoReader(this);
+
+			host.Settings.CustomData.SetXElement(
+				ConfigApplicationsKey,
+				new XElement(
+					"Applications",
+					Applications.Select(UnrealApplicationSettings.ToXml)
+				)
+			);
 		}
 
 		private void WindowAddedHandler(object sender, GlobalWindowManagerEventArgs e)
@@ -140,9 +155,11 @@ namespace UnrealPlugin
 					{
 						var imageIndex = settingsForm.SettingsTabControl.ImageList.Images.Add(Properties.Resources.icon, Color.Transparent);
 
-						var newTab = new TabPage("Unreal Engine");
-						newTab.UseVisualStyleBackColor = true;
-						newTab.ImageIndex = imageIndex;
+						var newTab = new TabPage("Unreal Engine")
+						{
+							UseVisualStyleBackColor = true,
+							ImageIndex = imageIndex
+						};
 
 						var optionsPanel = new SettingsPanel(this);
 						newTab.Controls.Add(optionsPanel);
@@ -156,27 +173,6 @@ namespace UnrealPlugin
 					}
 				};
 			}
-		}
-
-		private static IntPtr FindPattern(RemoteProcess process, Module module, string pattern)
-		{
-			// Read Module Bytes
-			var moduleBytes = process.ReadRemoteMemory(module.Start, module.Size.ToInt32());
-
-			// Parse Bytepattern
-			var bytePattern = BytePattern.Parse(pattern);
-
-			// Find Bytepattern in our copy
-			var limit = moduleBytes.Length - bytePattern.Length;
-			for (var i = 0; i < limit; ++i)
-			{
-				if (bytePattern.Equals(moduleBytes, i))
-				{
-					return module.Start + i;
-				}
-			}
-
-			return IntPtr.Zero;
 		}
 
 		private void OnProcessAttached(RemoteProcess process)
@@ -199,25 +195,39 @@ namespace UnrealPlugin
 						case UnrealEngineVersion.UE1:
 							resolver = new UnrealEngine1NameResolver(process, new UnrealEngine1Config
 							{
-
+								GlobalArrayPtr = namesArrayPtr,
+								UObjectNameOffset = settings.UObjectNameOffset,
+								FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
+								FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset,
+								FNameEntryIsWide = settings.FNameEntryIsWide
 							});
 							break;
 						case UnrealEngineVersion.UE2:
 							resolver = new UnrealEngine2NameResolver(process, new UnrealEngine2Config
 							{
-
+								GlobalArrayPtr = namesArrayPtr,
+								UObjectNameOffset = settings.UObjectNameOffset,
+								FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
+								FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset,
+								FNameEntryIsWide = settings.FNameEntryIsWide
 							});
 							break;
 						case UnrealEngineVersion.UE3:
 							resolver = new UnrealEngine3NameResolver(process, new UnrealEngine3Config
 							{
-
+								GlobalArrayPtr = namesArrayPtr,
+								UObjectNameOffset = settings.UObjectNameOffset,
+								FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
+								FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset
 							});
 							break;
 						case UnrealEngineVersion.UE4:
 							resolver = new UnrealEngine4NameResolver(process, new UnrealEngine4Config
 							{
-
+								GlobalArrayPtr = namesArrayPtr,
+								UObjectNameOffset = settings.UObjectNameOffset,
+								FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
+								FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset
 							});
 							break;
 						default:
@@ -230,6 +240,27 @@ namespace UnrealPlugin
 		public string ReadNodeInfo(BaseNode node, IntPtr value, MemoryBuffer memory)
 		{
 			return resolver?.ReadNameOfObject(value);
+		}
+
+		private static IntPtr FindPattern(RemoteProcess process, Module module, string pattern)
+		{
+			// Read Module Bytes
+			var moduleBytes = process.ReadRemoteMemory(module.Start, module.Size.ToInt32());
+
+			// Parse Bytepattern
+			var bytePattern = BytePattern.Parse(pattern);
+
+			// Find Bytepattern in our copy
+			var limit = moduleBytes.Length - bytePattern.Length;
+			for (var i = 0; i < limit; ++i)
+			{
+				if (bytePattern.Equals(moduleBytes, i))
+				{
+					return module.Start + i;
+				}
+			}
+
+			return IntPtr.Zero;
 		}
 	}
 }

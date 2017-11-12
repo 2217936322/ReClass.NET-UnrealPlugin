@@ -22,6 +22,11 @@ namespace UnrealPlugin.NameResolver
 
 		public string ReadNameOfObject(IntPtr address)
 		{
+			if (!IsUObject(address))
+			{
+				return null;
+			}
+
 			var nameIndex = ReadNameIndexFromObject(address);
 			if (nameIndex < 1)
 			{
@@ -35,6 +40,26 @@ namespace UnrealPlugin.NameResolver
 			}
 
 			return ReadNameFromNameEntry(nameEntryPtr, nameIndex);
+		}
+
+		/// <summary>
+		/// Checks if the address belongs to a UObject class.
+		/// </summary>
+		/// <remarks>Currently checks only if a virtual table exists.</remarks>
+		/// <param name="address">The address of the object.</param>
+		/// <returns>True if a UObject class, false otherwise.</returns>
+		protected virtual bool IsUObject(IntPtr address)
+		{
+			var vtablePtr = process.ReadRemoteIntPtr(address);
+			if (vtablePtr.MayBeValid())
+			{
+				var section = process.GetSectionToPointer(vtablePtr);
+				if (section != null)
+				{
+					return true;
+				}
+			}
+			return false;
 		}
 
 		protected virtual int ReadNameIndexFromObject(IntPtr address)

@@ -30,6 +30,8 @@
 		{
 			this.applicationSettingsGroupBox = new System.Windows.Forms.GroupBox();
 			this.groupBox3 = new System.Windows.Forms.GroupBox();
+			this.displayFullNameCheckBox = new System.Windows.Forms.CheckBox();
+			this.objectOuterOffsetNumericUpDown = new System.Windows.Forms.NumericUpDown();
 			this.nameEntryIsWideCharCheckBox = new System.Windows.Forms.CheckBox();
 			this.nameEntryDataOffsetNumericUpDown = new System.Windows.Forms.NumericUpDown();
 			this.nameEntryIndexOffsetNumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -42,35 +44,30 @@
 			this.patternOffsetNumericUpDown = new System.Windows.Forms.NumericUpDown();
 			this.label1 = new System.Windows.Forms.Label();
 			this.methodLabel = new System.Windows.Forms.Label();
+			this.patternMethodComboBox = new UnrealPlugin.UI.SettingsPanel.PatternMethodComboBox();
 			this.patternTextBox = new System.Windows.Forms.TextBox();
 			this.patternLabel = new System.Windows.Forms.Label();
-			this.platformLabel = new System.Windows.Forms.Label();
 			this.engineVersionLabel = new System.Windows.Forms.Label();
+			this.engineVersionComboBox = new UnrealPlugin.UI.SettingsPanel.UnrealEngineVersionComboBox();
 			this.applicationComboBox = new System.Windows.Forms.ComboBox();
 			this.applicationLabel = new System.Windows.Forms.Label();
-			this.objectOuterOffsetNumericUpDown = new System.Windows.Forms.NumericUpDown();
-			this.displayFullNameCheckBox = new System.Windows.Forms.CheckBox();
 			this.deleteButton = new ReClassNET.UI.IconButton();
 			this.addButton = new ReClassNET.UI.IconButton();
-			this.patternMethodComboBox = new UnrealPlugin.UI.SettingsPanel.PatternMethodComboBox();
-			this.platformComboBox = new UnrealPlugin.UI.SettingsPanel.PlatformComboBox();
-			this.engineVersionComboBox = new UnrealPlugin.UI.SettingsPanel.UnrealEngineVersionComboBox();
 			this.applicationSettingsGroupBox.SuspendLayout();
 			this.groupBox3.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.objectOuterOffsetNumericUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nameEntryDataOffsetNumericUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nameEntryIndexOffsetNumericUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.objectNameIndexOffsetNumericUpDown)).BeginInit();
 			this.patternGroupBox.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.patternOffsetNumericUpDown)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.objectOuterOffsetNumericUpDown)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// applicationSettingsGroupBox
 			// 
+			this.applicationSettingsGroupBox.Controls.Add(this.displayFullNameCheckBox);
 			this.applicationSettingsGroupBox.Controls.Add(this.groupBox3);
 			this.applicationSettingsGroupBox.Controls.Add(this.patternGroupBox);
-			this.applicationSettingsGroupBox.Controls.Add(this.platformLabel);
-			this.applicationSettingsGroupBox.Controls.Add(this.platformComboBox);
 			this.applicationSettingsGroupBox.Controls.Add(this.engineVersionLabel);
 			this.applicationSettingsGroupBox.Controls.Add(this.engineVersionComboBox);
 			this.applicationSettingsGroupBox.Location = new System.Drawing.Point(9, 33);
@@ -81,7 +78,6 @@
 			// 
 			// groupBox3
 			// 
-			this.groupBox3.Controls.Add(this.displayFullNameCheckBox);
 			this.groupBox3.Controls.Add(this.objectOuterOffsetNumericUpDown);
 			this.groupBox3.Controls.Add(this.nameEntryIsWideCharCheckBox);
 			this.groupBox3.Controls.Add(this.nameEntryDataOffsetNumericUpDown);
@@ -95,6 +91,36 @@
 			this.groupBox3.TabIndex = 5;
 			this.groupBox3.TabStop = false;
 			this.groupBox3.Text = "Offsets";
+			// 
+			// displayFullNameCheckBox
+			// 
+			this.displayFullNameCheckBox.AutoSize = true;
+			this.displayFullNameCheckBox.Location = new System.Drawing.Point(417, 21);
+			this.displayFullNameCheckBox.Name = "displayFullNameCheckBox";
+			this.displayFullNameCheckBox.Size = new System.Drawing.Size(110, 17);
+			this.displayFullNameCheckBox.TabIndex = 7;
+			this.displayFullNameCheckBox.Text = "Display Full Name";
+			this.displayFullNameCheckBox.UseVisualStyleBackColor = true;
+			this.displayFullNameCheckBox.CheckedChanged += new System.EventHandler(this.OnInputChanged);
+			// 
+			// objectOuterOffsetNumericUpDown
+			// 
+			this.objectOuterOffsetNumericUpDown.Hexadecimal = true;
+			this.objectOuterOffsetNumericUpDown.Location = new System.Drawing.Point(93, 79);
+			this.objectOuterOffsetNumericUpDown.Maximum = new decimal(new int[] {
+            999999,
+            0,
+            0,
+            0});
+			this.objectOuterOffsetNumericUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            -2147483648});
+			this.objectOuterOffsetNumericUpDown.Name = "objectOuterOffsetNumericUpDown";
+			this.objectOuterOffsetNumericUpDown.Size = new System.Drawing.Size(50, 20);
+			this.objectOuterOffsetNumericUpDown.TabIndex = 6;
+			this.objectOuterOffsetNumericUpDown.ValueChanged += new System.EventHandler(this.OnInputChanged);
 			// 
 			// nameEntryIsWideCharCheckBox
 			// 
@@ -240,6 +266,14 @@
 			this.methodLabel.TabIndex = 3;
 			this.methodLabel.Text = "Method:";
 			// 
+			// patternMethodComboBox
+			// 
+			this.patternMethodComboBox.Location = new System.Drawing.Point(56, 45);
+			this.patternMethodComboBox.Name = "patternMethodComboBox";
+			this.patternMethodComboBox.Size = new System.Drawing.Size(359, 21);
+			this.patternMethodComboBox.TabIndex = 2;
+			this.patternMethodComboBox.SelectionChangeCommitted += new System.EventHandler(this.OnInputChanged);
+			// 
 			// patternTextBox
 			// 
 			this.patternTextBox.Location = new System.Drawing.Point(56, 19);
@@ -257,15 +291,6 @@
 			this.patternLabel.TabIndex = 0;
 			this.patternLabel.Text = "Pattern:";
 			// 
-			// platformLabel
-			// 
-			this.platformLabel.AutoSize = true;
-			this.platformLabel.Location = new System.Drawing.Point(241, 22);
-			this.platformLabel.Name = "platformLabel";
-			this.platformLabel.Size = new System.Drawing.Size(48, 13);
-			this.platformLabel.TabIndex = 3;
-			this.platformLabel.Text = "Platform:";
-			// 
 			// engineVersionLabel
 			// 
 			this.engineVersionLabel.AutoSize = true;
@@ -274,6 +299,15 @@
 			this.engineVersionLabel.Size = new System.Drawing.Size(43, 13);
 			this.engineVersionLabel.TabIndex = 1;
 			this.engineVersionLabel.Text = "Engine:";
+			// 
+			// engineVersionComboBox
+			// 
+			this.engineVersionComboBox.Location = new System.Drawing.Point(54, 19);
+			this.engineVersionComboBox.Name = "engineVersionComboBox";
+			this.engineVersionComboBox.Size = new System.Drawing.Size(185, 21);
+			this.engineVersionComboBox.TabIndex = 0;
+			this.engineVersionComboBox.SelectedIndexChanged += new System.EventHandler(this.engineVersionComboBox_SelectedIndexChanged);
+			this.engineVersionComboBox.SelectionChangeCommitted += new System.EventHandler(this.OnInputChanged);
 			// 
 			// applicationComboBox
 			// 
@@ -294,36 +328,6 @@
 			this.applicationLabel.Size = new System.Drawing.Size(38, 13);
 			this.applicationLabel.TabIndex = 4;
 			this.applicationLabel.Text = "Game:";
-			// 
-			// objectOuterOffsetNumericUpDown
-			// 
-			this.objectOuterOffsetNumericUpDown.Hexadecimal = true;
-			this.objectOuterOffsetNumericUpDown.Location = new System.Drawing.Point(93, 79);
-			this.objectOuterOffsetNumericUpDown.Maximum = new decimal(new int[] {
-            999999,
-            0,
-            0,
-            0});
-			this.objectOuterOffsetNumericUpDown.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            -2147483648});
-			this.objectOuterOffsetNumericUpDown.Name = "objectOuterOffsetNumericUpDown";
-			this.objectOuterOffsetNumericUpDown.Size = new System.Drawing.Size(50, 20);
-			this.objectOuterOffsetNumericUpDown.TabIndex = 6;
-			this.objectOuterOffsetNumericUpDown.ValueChanged += new System.EventHandler(this.OnInputChanged);
-			// 
-			// displayFullNameCheckBox
-			// 
-			this.displayFullNameCheckBox.AutoSize = true;
-			this.displayFullNameCheckBox.Location = new System.Drawing.Point(390, 54);
-			this.displayFullNameCheckBox.Name = "displayFullNameCheckBox";
-			this.displayFullNameCheckBox.Size = new System.Drawing.Size(110, 17);
-			this.displayFullNameCheckBox.TabIndex = 7;
-			this.displayFullNameCheckBox.Text = "Display Full Name";
-			this.displayFullNameCheckBox.UseVisualStyleBackColor = true;
-			this.displayFullNameCheckBox.CheckedChanged += new System.EventHandler(this.OnInputChanged);
 			// 
 			// deleteButton
 			// 
@@ -347,31 +351,6 @@
 			this.addButton.TabIndex = 7;
 			this.addButton.Click += new System.EventHandler(this.addButton_Click);
 			// 
-			// patternMethodComboBox
-			// 
-			this.patternMethodComboBox.Location = new System.Drawing.Point(56, 45);
-			this.patternMethodComboBox.Name = "patternMethodComboBox";
-			this.patternMethodComboBox.Size = new System.Drawing.Size(359, 21);
-			this.patternMethodComboBox.TabIndex = 2;
-			this.patternMethodComboBox.SelectionChangeCommitted += new System.EventHandler(this.OnInputChanged);
-			// 
-			// platformComboBox
-			// 
-			this.platformComboBox.Location = new System.Drawing.Point(295, 19);
-			this.platformComboBox.Name = "platformComboBox";
-			this.platformComboBox.Size = new System.Drawing.Size(65, 21);
-			this.platformComboBox.TabIndex = 2;
-			this.platformComboBox.SelectionChangeCommitted += new System.EventHandler(this.OnInputChanged);
-			// 
-			// engineVersionComboBox
-			// 
-			this.engineVersionComboBox.Location = new System.Drawing.Point(54, 19);
-			this.engineVersionComboBox.Name = "engineVersionComboBox";
-			this.engineVersionComboBox.Size = new System.Drawing.Size(156, 21);
-			this.engineVersionComboBox.TabIndex = 0;
-			this.engineVersionComboBox.SelectedIndexChanged += new System.EventHandler(this.engineVersionComboBox_SelectedIndexChanged);
-			this.engineVersionComboBox.SelectionChangeCommitted += new System.EventHandler(this.OnInputChanged);
-			// 
 			// SettingsPanel
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -387,13 +366,13 @@
 			this.applicationSettingsGroupBox.PerformLayout();
 			this.groupBox3.ResumeLayout(false);
 			this.groupBox3.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.objectOuterOffsetNumericUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.nameEntryDataOffsetNumericUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.nameEntryIndexOffsetNumericUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.objectNameIndexOffsetNumericUpDown)).EndInit();
 			this.patternGroupBox.ResumeLayout(false);
 			this.patternGroupBox.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.patternOffsetNumericUpDown)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.objectOuterOffsetNumericUpDown)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -414,8 +393,6 @@
 		private PatternMethodComboBox patternMethodComboBox;
 		private System.Windows.Forms.TextBox patternTextBox;
 		private System.Windows.Forms.Label patternLabel;
-		private System.Windows.Forms.Label platformLabel;
-		private PlatformComboBox platformComboBox;
 		private System.Windows.Forms.Label engineVersionLabel;
 		private UnrealEngineVersionComboBox engineVersionComboBox;
 		private System.Windows.Forms.ComboBox applicationComboBox;

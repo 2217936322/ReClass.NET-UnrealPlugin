@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.Contracts;
+using System.IO;
 using System.Xml.Linq;
 using ReClassNET.Util;
 
@@ -14,12 +16,6 @@ namespace UnrealPlugin
 		InstructionAddressPlusOffset
 	}
 
-	public enum Platform
-	{
-		x86,
-		x64
-	}
-
 	public class UnrealApplicationSettings
 	{
 		private const string RootElement = "application";
@@ -27,7 +23,6 @@ namespace UnrealPlugin
 		public string Name { get; set; }
 
 		public UnrealEngineVersion Version { get; set; }
-		public Platform Platform { get; set; }
 		public string ProcessName { get; set; }
 
 		public PatternMethod PatternMethod { get; set; }
@@ -44,11 +39,12 @@ namespace UnrealPlugin
 
 		public static XElement ToXml(UnrealApplicationSettings settings)
 		{
+			Contract.Requires(settings != null);
+
 			return new XElement(
 				RootElement,
 				new XElement(nameof(settings.Name), settings.Name),
 				new XElement(nameof(settings.Version), (int)settings.Version),
-				new XElement(nameof(settings.Platform), (int)settings.Platform),
 				new XElement(nameof(settings.ProcessName), settings.ProcessName),
 
 				new XElement(nameof(settings.PatternMethod), (int)settings.PatternMethod),
@@ -66,13 +62,25 @@ namespace UnrealPlugin
 			);
 		}
 
+		public static void WriteToFile(UnrealApplicationSettings settings, string path)
+		{
+			Contract.Requires(settings != null);
+			Contract.Requires(path != null);
+
+			var element = ToXml(settings);
+
+			using (var sw = new StreamWriter(path))
+			{
+				element.Save(sw);
+			}
+		}
+
 		public static UnrealApplicationSettings FromXml(XElement element)
 		{
 			var settings = new UnrealApplicationSettings();
 
 			XElementSerializer.TryRead(element, nameof(settings.Name), e => settings.Name = XElementSerializer.ToString(e));
 			XElementSerializer.TryRead(element, nameof(settings.Version), e => settings.Version = (UnrealEngineVersion)XElementSerializer.ToInt(e));
-			XElementSerializer.TryRead(element, nameof(settings.Platform), e => settings.Platform = (Platform)XElementSerializer.ToInt(e));
 			XElementSerializer.TryRead(element, nameof(settings.ProcessName), e => settings.ProcessName = XElementSerializer.ToString(e));
 
 			XElementSerializer.TryRead(element, nameof(settings.PatternMethod), e => settings.PatternMethod = (PatternMethod)XElementSerializer.ToInt(e));
@@ -89,6 +97,19 @@ namespace UnrealPlugin
 			XElementSerializer.TryRead(element, nameof(settings.DisplayFullName), e => settings.DisplayFullName = XElementSerializer.ToBool(e));
 
 			return settings;
+		}
+
+		public static UnrealApplicationSettings ReadFromFile(string path)
+		{
+			Contract.Requires(path != null);
+			Contract.Ensures(Contract.Result<UnrealApplicationSettings>() != null);
+
+			using (var sw = new StreamReader(path))
+			{
+				var element = XElement.Load(sw);
+
+				return FromXml(element);
+			}
 		}
 	}
 }

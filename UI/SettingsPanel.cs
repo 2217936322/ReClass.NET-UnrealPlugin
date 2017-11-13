@@ -11,7 +11,6 @@ namespace UnrealPlugin.UI
 	public partial class SettingsPanel : UserControl
 	{
 		internal class UnrealEngineVersionComboBox : EnumComboBox<UnrealEngineVersion> { }
-		internal class PlatformComboBox : EnumComboBox<Platform> { }
 		internal class PatternMethodComboBox : EnumComboBox<PatternMethod> { }
 
 		private readonly UnrealPluginExt plugin;
@@ -74,7 +73,6 @@ namespace UnrealPlugin.UI
 				applicationSettingsGroupBox.Enabled = true;
 
 				engineVersionComboBox.SelectedValue = settings.Version;
-				platformComboBox.SelectedValue = settings.Platform;
 
 				patternMethodComboBox.SelectedValue = settings.PatternMethod;
 				patternModuleTextBox.Text = settings.PatternModule;
@@ -104,7 +102,6 @@ namespace UnrealPlugin.UI
 			}
 
 			settings.Version = engineVersionComboBox.SelectedValue;
-			settings.Platform = platformComboBox.SelectedValue;
 
 			settings.PatternMethod = patternMethodComboBox.SelectedValue;
 			settings.PatternModule = patternModuleTextBox.Text.Trim();
@@ -126,15 +123,19 @@ namespace UnrealPlugin.UI
 			{
 				if (caf.ShowDialog() == DialogResult.OK)
 				{
-					var settings = new UnrealApplicationSettings
+					var name = caf.ApplicationName.Trim();
+					if (!string.IsNullOrEmpty(name))
 					{
-						Name = caf.ApplicationName.Trim()
-					};
-					plugin.Applications.Add(settings);
+						var settings = new UnrealApplicationSettings
+						{
+							Name = caf.ApplicationName.Trim()
+						};
+						plugin.Applications.Add(settings);
 
-					BindSettings();
+						BindSettings();
 
-					applicationComboBox.SelectedItem = settings;
+						applicationComboBox.SelectedItem = settings;
+					}
 				}
 			}
 		}
@@ -150,6 +151,8 @@ namespace UnrealPlugin.UI
 			plugin.Applications.Remove(settings);
 
 			BindSettings();
+
+			UnrealPluginExt.DeleteApplication(settings);
 		}
 	}
 }

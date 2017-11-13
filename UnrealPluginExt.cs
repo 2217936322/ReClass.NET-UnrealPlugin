@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using System.Xml.Linq;
+using ReClassNET;
 using ReClassNET.Forms;
 using ReClassNET.Memory;
 using ReClassNET.MemoryScanner;
@@ -21,8 +22,6 @@ namespace UnrealPlugin
 {
 	public class UnrealPluginExt : Plugin, INodeInfoReader
 	{
-		private const string ConfigApplicationsKey = "UnrealPlugin.Applications";
-
 		private IPluginHost host;
 		
 		private INameResolver resolver;
@@ -30,12 +29,11 @@ namespace UnrealPlugin
 		public override Image Icon => Properties.Resources.B16x16_Icon;
 
 		public List<UnrealApplicationSettings> Applications { get; } = new List<UnrealApplicationSettings>()
-		{
+		/*{
 			new UnrealApplicationSettings
 			{
 				Name = "Playerunknown's Battlegrounds",
 				Version = UnrealEngineVersion.UE4,
-				Platform = Platform.x64,
 				ProcessName = "tslgame.exe",
 				PatternMethod = PatternMethod.InstructionAddressPlusOffset,
 				Pattern = "48 89 1D ?? ?? ?? ?? 48 8B 5C 24 ?? 48 83 C4 28 C3 48 8B 5C 24 ?? 48 89 05 ?? ?? ?? ?? 48 83 C4 28 C3",
@@ -48,7 +46,6 @@ namespace UnrealPlugin
 			{
 				Name = "Caffeine",
 				Version = UnrealEngineVersion.UE3,
-				Platform = Platform.x86,
 				ProcessName = "udk.exe",
 				PatternMethod = PatternMethod.Direct,
 				Pattern = "8B 0D ?? ?? ?? ?? 83 3C 81 00 74",
@@ -61,7 +58,6 @@ namespace UnrealPlugin
 			{
 				Name = "XIII",
 				Version = UnrealEngineVersion.UE2,
-				Platform = Platform.x86,
 				ProcessName = "xiii.exe",
 				PatternMethod = PatternMethod.Direct,
 				Pattern = "A1 ?? ?? ?? ?? 8B 88",
@@ -74,7 +70,6 @@ namespace UnrealPlugin
 			{
 				Name = "Unreal Tournament 2004",
 				Version = UnrealEngineVersion.UE2,
-				Platform = Platform.x86,
 				ProcessName = "xiii.exe",
 				PatternMethod = PatternMethod.Direct,
 				PatternModule = "core.dll",
@@ -89,7 +84,6 @@ namespace UnrealPlugin
 			{
 				Name = "Deus Ex",
 				Version = UnrealEngineVersion.UE1,
-				Platform = Platform.x86,
 				ProcessName = "deusex.exe",
 				PatternMethod = PatternMethod.Direct,
 				PatternModule = "core.dll",
@@ -100,7 +94,7 @@ namespace UnrealPlugin
 				FNameEntryNameDataOffset = 0xC,
 				FNameEntryIsWide = true
 			}
-		};
+		}*/;
 
 		public override bool Initialize(IPluginHost host)
 		{
@@ -113,11 +107,7 @@ namespace UnrealPlugin
 
 			this.host = host ?? throw new ArgumentNullException(nameof(host));
 
-			var applications = host.Settings.CustomData.GetXElement(ConfigApplicationsKey, null);
-			if (applications != null)
-			{
-				Applications.AddRange(applications.Elements().Select(UnrealApplicationSettings.FromXml));
-			}
+			LoadApplications();
 
 			// Register the InfoReader
 			host.RegisterNodeInfoReader(this);
@@ -136,13 +126,7 @@ namespace UnrealPlugin
 
 			host.DeregisterNodeInfoReader(this);
 
-			host.Settings.CustomData.SetXElement(
-				ConfigApplicationsKey,
-				new XElement(
-					"Applications",
-					Applications.Select(UnrealApplicationSettings.ToXml)
-				)
-			);
+			SaveApplications();
 		}
 
 		private void WindowAddedHandler(object sender, GlobalWindowManagerEventArgs e)
@@ -262,6 +246,101 @@ namespace UnrealPlugin
 			}
 
 			return IntPtr.Zero;
+		}
+
+		private static readonly Lazy<string> applicationsPath = new Lazy<string>(() =>
+		{
+			var type = typeof(UnrealPluginExt);
+
+			string path = null;
+			try
+			{
+				path = type.Assembly.Location;
+			}
+			catch (Exception)
+			{
+
+			}
+
+			if (string.IsNullOrEmpty(path))
+			{
+				path = type.Assembly.GetName().CodeBase;
+				path = PathUtil.FileUrlToPath(path);
+			}
+
+			path = Path.GetDirectoryName(path);
+
+			path = Path.Combine(path, "UnrealEngineApplications");
+
+			return path;
+		});
+
+		private void LoadApplications()
+		{
+			Applications.Clear();
+
+			try
+			{
+				var dir = new DirectoryInfo(applicationsPath.Value);
+				if (dir.Exists)
+				{
+					foreach (var file in dir.EnumerateFiles())
+					{
+						try
+						{
+							Applications.Add(UnrealApplicationSettings.ReadFromFile(file.FullName));
+						}
+						catch (Exception ex)
+						{
+							Program.ShowException(ex);
+						}
+					}
+				}
+			}
+			catch (DirectoryNotFoundException)
+			{
+				// ignore
+			}
+		}
+
+		private void SaveApplications()
+		{
+			Directory.CreateDirectory(applicationsPath.Value);
+
+			foreach (var app in Applications)
+			{
+				var path = Path.Combine(applicationsPath.Value, GetFilenameFromApplication(app));
+
+				try
+				{
+					UnrealApplicationSettings.WriteToFile(app, path);
+				}
+				catch (Exception ex)
+				{
+					Program.ShowException(ex);
+				}
+			}
+		}
+
+		internal static void DeleteApplication(UnrealApplicationSettings settings)
+		{
+			Contract.Requires(settings != null);
+
+			var path = Path.Combine(applicationsPath.Value, GetFilenameFromApplication(settings));
+
+			File.Delete(path);
+		}
+
+		private static string GetFilenameFromApplication(UnrealApplicationSettings settings)
+		{
+			Contract.Requires(settings != null);
+
+			var name = settings.Name;
+			foreach (var c in Path.GetInvalidFileNameChars())
+			{
+				name = name.Replace(c, '_');
+			}
+			return $"{name}.xml";
 		}
 	}
 }

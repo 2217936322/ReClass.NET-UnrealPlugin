@@ -22,6 +22,11 @@ namespace UnrealPlugin.NameResolver
 
 		public string ReadNameOfObject(IntPtr address)
 		{
+			if (!address.MayBeValid())
+			{
+				return null;
+			}
+
 			if (!IsUObject(address))
 			{
 				return null;
@@ -39,7 +44,19 @@ namespace UnrealPlugin.NameResolver
 				return null;
 			}
 
-			return ReadNameFromNameEntry(nameEntryPtr, nameIndex);
+			var name = ReadNameFromNameEntry(nameEntryPtr, nameIndex);
+
+			if (config.DisplayFullName)
+			{
+				var outerPtr = ReadOuterPtrFromObject(address);
+				var outerName = ReadNameOfObject(outerPtr);
+				if (outerName != null)
+				{
+					name = $"{outerName}.{name}";
+				}
+			}
+
+			return name;
 		}
 
 		/// <summary>
@@ -60,6 +77,11 @@ namespace UnrealPlugin.NameResolver
 				}
 			}
 			return false;
+		}
+
+		protected virtual IntPtr ReadOuterPtrFromObject(IntPtr address)
+		{
+			return process.ReadRemoteIntPtr(address + config.UObjectOuterOffset);
 		}
 
 		protected virtual int ReadNameIndexFromObject(IntPtr address)

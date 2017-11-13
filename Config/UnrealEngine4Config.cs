@@ -2,6 +2,10 @@
 {
 	internal class UnrealEngine4Config : BaseConfig
 	{
-		public int FNameEntryIndexOffset { get; set; }
+		public UnrealEngine4Config(UnrealApplicationSettings settings)
+			: base(settings)
+		{
+
+		}
 	}
 }

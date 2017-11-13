@@ -189,7 +189,6 @@ namespace UnrealPlugin
 				var moduleName = string.IsNullOrEmpty(settings.PatternModule) ? settings.ProcessName : settings.PatternModule;
 
 				var namesArrayPtr = FindPattern(process, process.GetModuleByName(moduleName), settings.Pattern);
-
 				if (!namesArrayPtr.IsNull())
 				{
 					switch (settings.PatternMethod)
@@ -208,41 +207,27 @@ namespace UnrealPlugin
 						switch (settings.Version)
 						{
 							case UnrealEngineVersion.UE1:
-								resolver = new UnrealEngine1NameResolver(process, new UnrealEngine1Config
+								resolver = new UnrealEngine1NameResolver(process, new UnrealEngine1Config(settings)
 								{
-									GlobalArrayPtr = namesArrayPtr,
-									UObjectNameOffset = settings.UObjectNameOffset,
-									FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
-									FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset,
-									FNameEntryIsWide = settings.FNameEntryIsWide
+									GlobalArrayPtr = namesArrayPtr
 								});
 								break;
 							case UnrealEngineVersion.UE2:
-								resolver = new UnrealEngine2NameResolver(process, new UnrealEngine2Config
+								resolver = new UnrealEngine2NameResolver(process, new UnrealEngine2Config(settings)
 								{
-									GlobalArrayPtr = namesArrayPtr,
-									UObjectNameOffset = settings.UObjectNameOffset,
-									FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
-									FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset,
-									FNameEntryIsWide = settings.FNameEntryIsWide
+									GlobalArrayPtr = namesArrayPtr
 								});
 								break;
 							case UnrealEngineVersion.UE3:
-								resolver = new UnrealEngine3NameResolver(process, new UnrealEngine3Config
+								resolver = new UnrealEngine3NameResolver(process, new UnrealEngine3Config(settings)
 								{
-									GlobalArrayPtr = namesArrayPtr,
-									UObjectNameOffset = settings.UObjectNameOffset,
-									FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
-									FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset
+									GlobalArrayPtr = namesArrayPtr
 								});
 								break;
 							case UnrealEngineVersion.UE4:
-								resolver = new UnrealEngine4NameResolver(process, new UnrealEngine4Config
+								resolver = new UnrealEngine4NameResolver(process, new UnrealEngine4Config(settings)
 								{
-									GlobalArrayPtr = namesArrayPtr,
-									UObjectNameOffset = settings.UObjectNameOffset,
-									FNameEntryIndexOffset = settings.FNameEntryIndexOffset,
-									FNameEntryNameDataOffset = settings.FNameEntryNameDataOffset
+									GlobalArrayPtr = namesArrayPtr
 								});
 								break;
 							default:

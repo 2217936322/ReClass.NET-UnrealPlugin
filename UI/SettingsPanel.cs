@@ -82,9 +82,12 @@ namespace UnrealPlugin.UI
 				patternOffsetNumericUpDown.Value = settings.PatternOffset;
 
 				objectNameIndexOffsetNumericUpDown.Value = settings.UObjectNameOffset;
+				objectOuterOffsetNumericUpDown.Value = settings.UObjectOuterOffset;
 				nameEntryIndexOffsetNumericUpDown.Value = settings.FNameEntryIndexOffset;
 				nameEntryDataOffsetNumericUpDown.Value = settings.FNameEntryNameDataOffset;
 				nameEntryIsWideCharCheckBox.Checked = settings.FNameEntryIsWide;
+
+				displayFullNameCheckBox.Checked = settings.DisplayFullName;
 			}
 			finally
 			{
@@ -109,9 +112,12 @@ namespace UnrealPlugin.UI
 			settings.PatternOffset = (int)patternOffsetNumericUpDown.Value;
 
 			settings.UObjectNameOffset = (int)objectNameIndexOffsetNumericUpDown.Value;
+			settings.UObjectOuterOffset = (int)objectOuterOffsetNumericUpDown.Value;
 			settings.FNameEntryIndexOffset = (int)nameEntryIndexOffsetNumericUpDown.Value;
 			settings.FNameEntryNameDataOffset = (int)nameEntryDataOffsetNumericUpDown.Value;
 			settings.FNameEntryIsWide = nameEntryIsWideCharCheckBox.Checked;
+
+			settings.DisplayFullName = displayFullNameCheckBox.Checked;
 		}
 
 		private void addButton_Click(object sender, EventArgs e)

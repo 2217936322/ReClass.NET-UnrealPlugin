@@ -36,9 +36,11 @@ namespace UnrealPlugin
 		public int PatternOffset { get; set; }
 
 		public int UObjectNameOffset { get; set; }
+		public int UObjectOuterOffset { get; set; }
 		public int FNameEntryIndexOffset { get; set; }
 		public int FNameEntryNameDataOffset { get; set; }
 		public bool FNameEntryIsWide { get; set; }
+		public bool DisplayFullName { get; set; }
 
 		public static XElement ToXml(UnrealApplicationSettings settings)
 		{
@@ -55,9 +57,12 @@ namespace UnrealPlugin
 				new XElement(nameof(settings.PatternOffset), settings.PatternOffset),
 
 				new XElement(nameof(settings.UObjectNameOffset), settings.UObjectNameOffset),
+				new XElement(nameof(settings.UObjectOuterOffset), settings.UObjectOuterOffset),
 				new XElement(nameof(settings.FNameEntryIndexOffset), settings.FNameEntryIndexOffset),
 				new XElement(nameof(settings.FNameEntryNameDataOffset), settings.FNameEntryNameDataOffset),
-				new XElement(nameof(settings.FNameEntryIsWide), settings.FNameEntryIsWide)
+				new XElement(nameof(settings.FNameEntryIsWide), settings.FNameEntryIsWide),
+
+				new XElement(nameof(settings.DisplayFullName), settings.DisplayFullName)
 			);
 		}
 
@@ -76,9 +81,12 @@ namespace UnrealPlugin
 			XElementSerializer.TryRead(element, nameof(settings.PatternOffset), e => settings.PatternOffset = XElementSerializer.ToInt(e));
 
 			XElementSerializer.TryRead(element, nameof(settings.UObjectNameOffset), e => settings.UObjectNameOffset = XElementSerializer.ToInt(e));
+			XElementSerializer.TryRead(element, nameof(settings.UObjectOuterOffset), e => settings.UObjectOuterOffset = XElementSerializer.ToInt(e));
 			XElementSerializer.TryRead(element, nameof(settings.FNameEntryIndexOffset), e => settings.FNameEntryIndexOffset = XElementSerializer.ToInt(e));
 			XElementSerializer.TryRead(element, nameof(settings.FNameEntryNameDataOffset), e => settings.FNameEntryNameDataOffset = XElementSerializer.ToInt(e));
 			XElementSerializer.TryRead(element, nameof(settings.FNameEntryIsWide), e => settings.FNameEntryIsWide = XElementSerializer.ToBool(e));
+
+			XElementSerializer.TryRead(element, nameof(settings.DisplayFullName), e => settings.DisplayFullName = XElementSerializer.ToBool(e));
 
 			return settings;
 		}

@@ -222,9 +222,9 @@ namespace UnrealPlugin
 			}
 		}
 
-		public string ReadNodeInfo(BaseNode node, IntPtr value, MemoryBuffer memory)
+		public string ReadNodeInfo(BaseNode node, IntPtr nodeAddress, IntPtr nodeValue, MemoryBuffer memory)
 		{
-			return resolver?.ReadNameOfObject(value);
+			return resolver?.ReadNameOfObject(nodeValue);
 		}
 
 		private static IntPtr FindPattern(RemoteProcess process, Module module, string pattern)

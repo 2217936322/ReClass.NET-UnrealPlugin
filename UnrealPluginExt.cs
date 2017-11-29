@@ -172,7 +172,11 @@ namespace UnrealPlugin
 			{
 				var moduleName = string.IsNullOrEmpty(settings.PatternModule) ? settings.ProcessName : settings.PatternModule;
 
-				var namesArrayPtr = FindPattern(process, process.GetModuleByName(moduleName), settings.Pattern);
+				var namesArrayPtr = PatternScanner.FindPattern(
+					BytePattern.Parse(settings.Pattern),
+					process,
+					process.GetModuleByName(moduleName)
+				);
 				if (!namesArrayPtr.IsNull())
 				{
 					switch (settings.PatternMethod)
@@ -225,27 +229,6 @@ namespace UnrealPlugin
 		public string ReadNodeInfo(BaseNode node, IntPtr nodeAddress, IntPtr nodeValue, MemoryBuffer memory)
 		{
 			return resolver?.ReadNameOfObject(nodeValue);
-		}
-
-		private static IntPtr FindPattern(RemoteProcess process, Module module, string pattern)
-		{
-			// Read Module Bytes
-			var moduleBytes = process.ReadRemoteMemory(module.Start, module.Size.ToInt32());
-
-			// Parse Bytepattern
-			var bytePattern = BytePattern.Parse(pattern);
-
-			// Find Bytepattern in our copy
-			var limit = moduleBytes.Length - bytePattern.Length;
-			for (var i = 0; i < limit; ++i)
-			{
-				if (bytePattern.Equals(moduleBytes, i))
-				{
-					return module.Start + i;
-				}
-			}
-
-			return IntPtr.Zero;
 		}
 
 		private static readonly Lazy<string> applicationsPath = new Lazy<string>(() =>

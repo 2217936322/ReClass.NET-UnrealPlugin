@@ -75,27 +75,27 @@ namespace UnrealPlugin
 
                 case "tslgame.exe": // Playerunknown's Battlegrounds
                 case "fortniteclient-win64-shipping.exe": // Fortnite
+                {
+                    var pattern = "48 89 1D ?? ?? ?? ?? 48 8B 5C 24 ?? 48 83 C4 28 C3 48 8B 5C 24 ?? 48 89 05 ?? ?? ?? ?? 48 83 C4 28 C3";
+                    var address = FindPattern(process, process.GetModuleByName(processName), pattern);
+
+                    if (!address.IsNull())
                     {
-                        var pattern = "48 89 1D ?? ?? ?? ?? 48 8B 5C 24 ?? 48 83 C4 28 C3 48 8B 5C 24 ?? 48 89 05 ?? ?? ?? ?? 48 83 C4 28 C3";
-                        var address = FindPattern(process, process.GetModuleByName(processName), pattern);
-
-                        if (!address.IsNull())
-                        {
-                            var offset = process.ReadRemoteInt32(address + 0x3);
-                            gNames = process.ReadRemoteIntPtr(address + offset + 7);
-                        }
-
-                        pattern = "48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8B D6 48 89 B5";
-                        address = FindPattern(process, process.GetModuleByName(processName), pattern);
-
-                        if (!address.IsNull())
-                        {
-                            var offset = process.ReadRemoteInt32(address + 0x3);
-                            gObjects = address + offset + 7;
-                        }
-
-                        break;
+                        var offset = process.ReadRemoteInt32(address + 0x3);
+                        gNames = process.ReadRemoteIntPtr(address + offset + 7);
                     }
+
+                    pattern = "48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8B D6 48 89 B5";
+                    address = FindPattern(process, process.GetModuleByName(processName), pattern);
+
+                    if (!address.IsNull())
+                    {
+                        var offset = process.ReadRemoteInt32(address + 0x3);
+                        gObjects = address + offset + 7;
+                    }
+
+                    break;
+                }
             }
         }
 
@@ -104,11 +104,11 @@ namespace UnrealPlugin
             host.DeregisterNodeInfoReader(this);
         }
 
-        public string ReadNodeInfo(BaseNode node, IntPtr value, MemoryBuffer memory)
+        public string ReadNodeInfo(BaseNode node, IntPtr nodeAddress, IntPtr nodeValue, MemoryBuffer memory)
         {
-            if (IsUObject(value, memory))
+            if (IsUObject(nodeValue, memory))
             {
-                return GetUObjectName(value, memory);
+                return GetUObjectName(nodeValue, memory);
             }
 
             return null;
